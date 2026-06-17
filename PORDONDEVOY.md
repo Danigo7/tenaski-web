@@ -2,7 +2,7 @@
 
 ## 📌 Resumen General
 
-Este proyecto consiste en el desarrollo de una web profesional para una marca artesanal de esquís hechos a mano.  
+Este proyecto consiste en el desarrollo de una web profesional para una marca artesanal de esquís hechos a mano.
 
 El objetivo es crear una plataforma:
 
@@ -14,165 +14,345 @@ El objetivo es crear una plataforma:
 
 Además, el proyecto está siendo desarrollado como parte de un portfolio profesional Full Stack.
 
-----------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
 
 ## 🧠 Estado actual del proyecto
 
-Actualmente el proyecto se encuentra en:
+# 🧱 FASE 0 — Backend Supabase (Fase 0 completada) ✅
 
-# 🧱 FASE 0 — Diseño de Base de Datos y Arquitectura
+## 1. Objetivo de esta fase
 
-Esta fase es completamente de planificación (NO código todavía).
+Se construyó toda la base del backend del sistema.
 
-----------------------------------------------------------------------------------------------------------
+El objetivo era definir:
 
-## 📚 Trabajo ya realizado
+- Modelo de datos
+- Relaciones entre entidades
+- Sistema de seguridad (RLS)
+- Roles de acceso
+- Reglas de negocio base
 
-### 1. Arquitectura del sistema definida
+---
 
-Se ha definido el stack tecnológico:
+## 2. Base de datos (completada)
 
-- Frontend: Next.js + TypeScript + Tailwind CSS
-- Backend: Supabase
-- Base de datos: PostgreSQL (Supabase)
-- Storage: Supabase Storage
-- Hosting: Netlify
+Se han creado las siguientes tablas:
 
-### 2. Roadmap del proyecto creado
+### Usuarios CMS
+- profile (usuarios internos del sistema)
 
-El proyecto está dividido en fases:
+### Contenido principal
+- product (esquís)
+- page (páginas informativas)
+- message (mensajes de contacto)
 
-- Fase 0 → Diseño (arquitectura + base de datos + seguridad)
-- Fase 1 → Setup del proyecto
-- Fase 2 → Diseño UI/UX
-- Fase 3 → Base de datos en Supabase
-- Fase 4 → Frontend público
-- Fase 5 → Autenticación
-- Fase 6 → Panel de administración (CMS)
-- Fase 7 → Optimización (SEO + rendimiento + seguridad)
-- Fase 8 → Deploy final
+### Media
+- image (imágenes en Supabase Storage)
 
-### 3. Modelo de base de datos diseñado
+### Relaciones
+- product_image
+- page_image
 
-Se han definido las entidades principales:
+---
 
-- products
-- product_images
-- gallery_images
-- pages
-- messages
-- profiles (admins)
+## 3. Seguridad (RLS implementado)
 
-Relaciones y estructura lógica ya diseñadas. 
+Se ha implementado Row Level Security en todas las tablas.
 
-Se han definido las tablas, entidades, atributos, todo ya. 
+### Roles definidos
+- anon → usuario no autenticado
+- authenticated → usuario logueado
+- admin → control total CMS
+- editor → gestión limitada de contenido
 
-### 4. Sistema de seguridad en diseño
+---
 
-Se está trabajando en:
+## 4. Reglas principales
 
-# 🔐 security_model.md
+### Visibilidad pública
+- Solo contenido con `publicado = true` es visible
 
-Donde se define:
+### Ownership
+- `editor` solo puede modificar su propio contenido
+- `admin` tiene control total
 
-- Roles del sistema
-- Permisos por tabla
-- Acceso público vs admin
-- Estrategia de Row Level Security (RLS)
+### Mensajes
+- Público puede enviar mensajes
+- Solo CMS puede leerlos
 
+### Imágenes
+- Solo accesibles vía CMS o relaciones con contenido publicado
 
-## 👥 Roles del sistema
+---
 
-### Público (visitante)
-- Puede ver productos
-- Puede ver páginas públicas
-- Puede enviar mensajes
+## 5. Función auxiliar
 
-### Administrador
-- Acceso al panel CMS
-- Crear / editar / borrar productos
-- Gestionar imágenes
-- Editar contenido
-- Ver mensajes
+Se ha creado:
 
-----------------------------------------------------------------------------------------------------------
+- get_user_role()
+
+Permite determinar el rol del usuario para aplicar reglas de acceso.
+
+---
+
+## 6. Estado final FASE 0
+
+✔ Base de datos creada  
+✔ Relaciones definidas  
+✔ RLS activo  
+✔ Roles implementados  
+✔ Reglas de seguridad aplicadas  
+✔ Primeros tests realizados  
+
+---
+
+## 7. Problemas detectados durante pruebas
+
+- Errores de permisos en tabla `profile`
+- Dependencia de la función `get_user_role()` con RLS
+- Problemas de test en entorno SQL (no refleja producción real)
+
+---
+
+## 8. Decisión tomada
+
+Se detienen las pruebas de backend en SQL Editor.
+
+Motivo:
+- El entorno no representa el comportamiento real de producción
+- Los tests deben hacerse desde frontend (Next.js + Supabase client)
+
+---
+
+⚠️ Nota importante
+
+Los tests de RLS en SQL Editor no son fiables, se validarán desde Next.js.
+
+---------------------------------------------------------------------------------------------
 
 ## 🔐 Estado actual del trabajo
 
+# 🎯 Objetivo
+
+Tener el proyecto Next.js funcionando, conectado a Supabase y listo para desarrollo real.
+
 Actualmente el proyecto está en:
 
-# 👉 Diseño del modelo de seguridad de base de datos (RLS)
+# 🟢 FASE ACTUAL: FASE 1 — Setup del proyecto (Next.js)
 
-Se está definiendo:
+✔ YA COMPLETADO
+✔ Crear proyecto Next.js + TypeScript (INICIADO / FUNCIONANDO)
+✔ Configurar Tailwind CSS
+✔ Estructura base de carpetas (components, lib, hooks, types)
+✔ Primer layout básico (layout.tsx)
+✔ Home inicial funcional
+✔ Primeros componentes UI (Button, Header básico)
+✔ Estilo base con Tailwind
+✔ Conectar Supabase (cliente + servidor) 
+✔ Configurar variables de entorno (.env.local)
+🔲 Setup Git + GitHub
+🔲 Setup Netlify (deploy inicial)
+🔲 Validación de conexión real con Supabase
 
-- Qué datos son públicos
-- Qué datos son privados
-- Qué puede hacer cada rol
-- Qué tablas estarán protegidas
-- Qué operaciones estarán permitidas (SELECT / INSERT / UPDATE / DELETE)
+# 🧠 Nota de estado
 
-----------------------------------------------------------------------------------------------------------
+👉 Ya hay frontend funcionando, pero aún no está conectado al backend real.
+
+# FASE 2 — UI / Diseño visual (INICIADA PARCIALMENTE)
+📊 Estado real
+✔ YA HECHO
+✔ Layout base inicial
+✔ Home con estructura inicial
+✔ Primer sistema de botones
+✔ Tailwind configurado
+🔲 PENDIENTE
+🔲 Navbar final (estructura premium)
+🔲 Footer
+🔲 Sistema visual completo (tipografía, espaciado, grid)
+🔲 Componentes reutilizables avanzados
+🔲 Responsive completo
+🔲 Dirección estética final premium outdoor
+
+---------------------------------------------------------------------------------------------
 
 ## ⚠️ Decisión importante tomada
 
-Se está usando seguridad a nivel de base de datos (RLS en Supabase), no solo seguridad en frontend.
+Tests de RLS en SQL editor no son fiables. Se valida todo desde Next.js con el cliente real de Supabase.
 
-Esto garantiza:
+⚠️ Tests de RLS pendientes — no realizados aún. Validar antes de pasar a Fase 2.
 
-- Protección real de datos
-- Control total del acceso
-- Prevención de accesos no autorizados
-- Arquitectura profesional
+---------------------------------------------------------------------------------------------
 
-----------------------------------------------------------------------------------------------------------
+## 🧭 Siguiente paso previsto CLAVE (OBLIGATORIO)
 
-## 🧭 Siguiente paso previsto
+### 👉 Conectar Supabase al proyecto Next.js
 
-Una vez terminado el `security_model.md`, el siguiente paso será:
+Sin esto:
 
-### 🔐 Implementación de RLS en Supabase
+No hay autenticación real
+No hay datos reales
+No hay validación de RLS
+No hay CMS posible
 
-- Crear políticas reales en SQL
-- Definir permisos por tabla
-- Conectar con autenticación
-- Validar acceso por roles
-
-----------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
 
 ## 🎯 Objetivo final de esta fase
 
-Tener una base de datos:
+Proyecto Next.js corriendo en local, conectado a Supabase, estructura de carpetas definida, variables de entorno configuradas, subido a GitHub con deploy en Netlify. Sin UI — solo la base técnica lista para construir encima.
 
-- Bien estructurada
-- Segura
-- Escalable
-- Lista para conectarse al frontend
-
-Sin necesidad de cambios posteriores importantes.
-
-----------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
 
 ## 🧠 Nota importante del proceso
 
 El proyecto se está construyendo de forma profesional:
 
 1. Primero arquitectura
-2. Luego base de datos
-3. Luego seguridad
-4. Luego desarrollo
-5. Luego UI
+2. Luego base de datos (diseño)
+3. Luego seguridad (RLS conceptual + real)
+3.5. Tests reales desde frontend, no desde SQL editor
+4. Luego desarrollo frontend
+5. Luego UI/UX final
 6. Luego deploy
 
-Evitando errores comunes de desarrollo rápido sin planificación.
+Evitando errores comunes de desarrollo sin planificación. 
 
-----------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
 
 ## 📍 Estado general
 
-✔ Arquitectura definida  
-✔ Roadmap definido  
-✔ Modelo de datos definido  
-🔄 Seguridad (RLS) en progreso  
-⏳ README.md CREO QUE SERÍA INTERESANTE HACERLO, DE LA ARQUITECTURA DEFINIDA.
+FASE 0 — Arquitectura y diseño técnico
+
+✔ Definición de objetivos
+✔ Definición de funcionalidades
+✔ Roles de usuario
+✔ Arquitectura general del sistema
+✔ Modelo de base de datos
+✔ Supabase configurado (Auth, DB, Storage base)
+⏸️ Tests de seguridad (pendientes, los haremos cuando exista Next.js + Supabase client real)
+
+
+FASE 1 — Setup del proyecto (Next.js) ⏳
+
+✔ Crear proyecto Next.js + TypeScript
+✔ Configurar Tailwind CSS
+✔ Estructura base de carpetas (components, lib, hooks, types)
+✔ Primer layout básico funcionando (layout.tsx)
+✔ Navegación básica funcionando (Header + Link)
+✔ Home inicial funcional
+✔ Conectar Supabase (cliente + servidor) 
+✔ Configurar variables de entorno (.env.local)
+🔲 Setup Git + GitHub
+🔲 Setup Netlify (deploy)
+
+FASE 2 — Base UI / Diseño visual
+
+✔ Layout principal básico (Header existe)
+✔ Primer sistema de botones (Button component)
+✔ Home con diseño inicial
+✔ Estilo base con Tailwind
+🔲 Layout principal (Navbar, Footer)
+🔲 Sistema visual premium (tipografía, colores, espaciado)
+🔲 Componentes base reutilizables
+🔲 Diseño responsive inicial
+
+FASE 3 — Web pública (frontend)
+
+🔲 Home
+🔲 Historia de la marca
+🔲 Catálogo de productos
+🔲 Página de producto
+🔲 Galería
+🔲 Contacto + formulario (Supabase messages)
+
+FASE 4 — Autenticación
+
+🔲 Login con Supabase Auth
+🔲 Middleware de protección
+🔲 Sesión de usuario
+🔲 Roles (admin)
+
+FASE 5 — CMS (panel admin)
+
+🔲 Dashboard
+🔲 CRUD productos
+🔲 Gestión de imágenes (Supabase Storage)
+🔲 Gestión de contenido (pages table)
+🔲 Gestión de mensajes
+
+FASE 6 — Seguridad y hardening
+
+🔲 Revisión RLS completa
+🔲 Validación de inputs
+🔲 Protección de endpoints
+🔲 Reglas de acceso por rol
+🔲 Revisión OWASP básica
+
+FASE 7 — SEO + rendimiento
+
+🔲 Metadata global
+🔲 Open Graph
+🔲 Sitemap + robots
+🔲 Optimización imágenes
+🔲 Core Web Vitals
+
+FASE 8 — Deploy
+
+🔲 Deploy Netlify
+🔲 Configuración producción Supabase
+🔲 Variables de entorno
+🔲 Dominio (opcional)
+
+---------------------------------------------------------------------------------------------
+
+# 🧭 Mapa de chats por fase
 
 ---
+
+## 🟢 FASE 1 — Setup (Next.js)
+👉 💻 DESARROLLO FRONTEND  
+↳ 🧭 ROADMAP (orden y dudas)
+
+---
+
+## 🎨 FASE 2 — UI / Diseño
+👉 🎨 DISEÑO UX  
+↳ 💻 FRONTEND (si se implementa)
+
+---
+
+## 🌐 FASE 3 — Web pública
+👉 💻 DESARROLLO FRONTEND  
+↳ 🎨 UX (diseño)  
+↳ 🧭 ROADMAP (estructura)
+
+---
+
+## 🔐 FASE 4 — Autenticación
+👉 💻 FRONTEND  
+↳ 🔐 DESPLIEGUE Y SEGURIDAD
+
+---
+
+## 🛠 FASE 5 — CMS
+👉 💻 FRONTEND  
+↳ 🧱 SUPABASE (datos)  
+↳ 🔐 SEGURIDAD (roles / RLS)
+
+---
+
+## 🔐 FASE 6 — Seguridad
+👉 🔐 DESPLIEGUE Y SEGURIDAD  
+↳ 🧱 SUPABASE  
+↳ 💻 FRONTEND
+
+---
+
+## 🚀 FASE 7 — SEO
+👉 💻 FRONTEND  
+↳ 🔐 SEGURIDAD (performance)
+
+---
+
+## 🌍 FASE 8 — Deploy
+👉 🔐 DESPLIEGUE Y SEGURIDAD  
+↳ GitHub / Netlify / Supabase

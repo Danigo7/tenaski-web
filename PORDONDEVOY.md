@@ -244,7 +244,7 @@ FASE 1 — Setup del proyecto (Next.js) ⏳
 ✔ Setup Git 
 ✔ Conectar GitHub
 ✔ Primer push limpio
-🔲 Setup Netlify (deploy)
+✔ Setup Netlify (deploy)
 
 FASE 2 — Base UI / Diseño visual
 

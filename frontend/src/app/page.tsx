@@ -2,7 +2,7 @@ import Button from "@/components/ui/Button";
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
 
       <p className="mt-4 text-5xl sm:text-6xl font-semibold tracking-tight">
         Tena Skis
@@ -20,12 +20,11 @@ export default function Home() {
         <Button href="/catalogo" variant="primary">
           Ver catálogo
         </Button>
-
         <Button href="/historia" variant="secondary">
           Nuestra historia
         </Button>
       </div>
 
-    </main>
+    </div>
   );
 }

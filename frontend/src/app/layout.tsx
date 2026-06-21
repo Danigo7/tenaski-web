@@ -1,6 +1,20 @@
 import type { Metadata } from "next";
+import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/Header";
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "600"],
+  variable: "--font-cormorant",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  variable: "--font-dm-sans",
+});
 
 export const metadata: Metadata = {
   title: "Tena Skis — Esquís artesanales de los Pirineos",
@@ -13,10 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es">
-      <body className="bg-zinc-50 text-black antialiased">
-        <Header />
+    <html lang="es" className={`${cormorant.variable} ${dmSans.variable}`}>
+      <body className="bg-[#0F0F0F] text-[#E8E4DC] antialiased">
+        <Navbar />
         {children}
+        <Footer />                           
       </body>
     </html>
   );

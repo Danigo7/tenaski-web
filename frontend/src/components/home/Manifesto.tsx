@@ -1,0 +1,64 @@
+'use client'
+
+import SectionTitle from '@/components/ui/SectionTitle'
+import SectionText from '../ui/SectionTest'
+
+type ManifestoProps = {
+  eyebrow: string    // Etiqueta superior (ej: "Nuestra filosofía")
+  title: string      // Título de la sección
+  description: string
+  imageUrl?: string  // Imagen lateral opcional
+}
+
+export default function Manifesto({ eyebrow, title, description, imageUrl }: ManifestoProps) {
+  return (
+    <section className="bg-[#0F0F0F] py-10">
+
+      {/* Grid de 2 columnas en desktop: texto | imagen */}
+      <div className="mx-auto grid max-w-6xl items-center gap-20 px-6 lg:grid-cols-2">
+
+        {/* ── TEXTO ─────────────────────────────────────────── */}
+        <div>
+
+          {/* Eyebrow en dorado */}
+          <p className="mb-6 text-xs uppercase tracking-[0.35em] text-[#C4A882]">
+            {eyebrow}
+          </p>
+
+          {/* Título con el componente compartido (max-w-2xl incluido) */}
+          <SectionTitle>{title}</SectionTitle>
+
+          {/* Descripción con el componente compartido (max-w-lg incluido) */}
+          <div className="mt-10">
+            <SectionText>{description}</SectionText>
+          </div>
+
+        </div>
+
+        {/* ── IMAGEN ────────────────────────────────────────── */}
+        {/* group permite que los hijos reaccionen al hover del contenedor */}
+        <div className="relative h-[520px] overflow-hidden group">
+
+          {/* Imagen o placeholder */}
+          {imageUrl ? (
+            <div
+              className="img-premium h-full w-full bg-cover bg-center"
+              style={{ backgroundImage: `url(${imageUrl})` }}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-[#1a1714]">
+              <p className="text-xs uppercase tracking-[0.3em] text-[#E8E4DC]/20">
+                Imagen manifiesto
+              </p>
+            </div>
+          )}
+
+          {/* Overlay oscuro que desaparece en hover para revelar la imagen */}
+          <div className="absolute inset-0 bg-black/25 transition-opacity duration-700 group-hover:opacity-0" />
+
+        </div>
+
+      </div>
+    </section>
+  )
+}

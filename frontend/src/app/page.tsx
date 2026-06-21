@@ -1,30 +1,113 @@
-import Button from "@/components/ui/Button";
+import Hero from '@/components/home/Hero'
+import Manifesto from '@/components/home/Manifesto'
+import Process from '@/components/home/Process'
+import FeaturedProduct from '@/components/home/FeaturedProduct'
+import CTA from '@/components/home/CTA'
+import ScrollToTop from '@/components/ui/ScrollToTop'
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
+    <main>
 
-      <p className="mt-4 text-5xl sm:text-6xl font-semibold tracking-tight">
-        Tena Skis
-      </p>
+      <Hero
+        imageUrl="/img/heroimg.png"
+        eyebrow="Pirineos · Hecho a mano"
+        title="Esquís que cuentan algo."
+        description="Cada par sale del taller con un nombre, una historia y la forma exacta del terreno para el que fue hecho."
+      />
 
-      <h1 className="mt-6 max-w-xl text-zinc-600 text-lg leading-relaxed">
-        Esquís artesanales de alta montaña
-      </h1>
+      <Manifesto
+        imageUrl="/img/manifestoimg.png"
 
-      <p className="text-sm tracking-[0.2em] uppercase text-zinc-500">
-        Diseñados y construidos a mano en los Pirineos. Precisión, madera y nieve en su forma más pura.
-      </p>
+        eyebrow="Nuestra filosofía"
 
-      <div className="mt-10 flex gap-4">
-        <Button href="/catalogo" variant="primary">
-          Ver catálogo
-        </Button>
-        <Button href="/historia" variant="secondary">
-          Nuestra historia
-        </Button>
-      </div>
+        title="No fabricamos esquís. Construimos compañeros de montaña."
 
-    </div>
-  );
+        description="Cada pieza nace en el taller, donde la madera, la experiencia y el terreno se encuentran para crear algo que durará muchos inviernos."
+      />
+
+      <Process
+        eyebrow="El taller"
+
+        title="Cada esquí pasa por cuatro etapas."
+
+        description="El proceso combina experiencia, materiales seleccionados y una construcción artesanal pensada para durar muchos inviernos."
+
+        steps={[
+          {
+            title: 'Diseño',
+
+            description:
+              'Cada modelo nace pensando en un terreno y una forma de esquiar.',
+
+            imageUrl: '/img/designimg.png',
+
+            imageAlt: 'Diseño artesanal de esquís',
+          },
+
+          {
+            title: 'Madera',
+
+            description:
+              'Seleccionamos materiales resistentes y ligeros para cada construcción.',
+
+            imageUrl: '/img/woodimg.jpeg',
+
+            imageAlt: 'Selección de madera',
+          },
+
+          {
+            title: 'Construcción',
+
+            description:
+              'Cada pieza se trabaja a mano dentro del taller.',
+
+            imageUrl: '/img/buildimg.jpeg',
+
+            imageAlt: 'Construcción de esquís',
+          },
+
+          {
+            title: 'Acabado',
+
+            description:
+              'Los detalles finales convierten cada esquí en una pieza única.',
+
+            imageUrl: '/img/finishimg.png',
+
+            imageAlt: 'Acabado artesanal',
+          },
+        ]}
+      />
+
+      <FeaturedProduct
+        eyebrow="Producto destacado"
+
+        name="O Sallenuto"
+
+        description="Diseñado para quienes buscan estabilidad, precisión y una conexión directa con la montaña en cualquier condición."
+
+        imageUrl="/img/manifestoimg.png"
+
+        buttonText="Descubrir modelo"
+
+        buttonHref="/catalogo"
+      />
+
+      <CTA
+        eyebrow="Empieza el viaje"
+
+        title="Cada esquí empieza como un trozo de madera."
+
+        description="Descubre una colección creada para durar, evolucionar y acompañarte durante muchos inviernos."
+
+        buttonText="Explorar catálogo"
+
+        buttonHref="/catalogo"
+      />
+
+      <ScrollToTop />
+
+    </main>
+  )
 }

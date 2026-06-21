@@ -130,6 +130,59 @@ Los tests de RLS en SQL Editor no son fiables, se validarán desde Next.js.
 
 ---------------------------------------------------------------------------------------------
 
+# 🟢 FASE 1 — Setup del proyecto (EN CURSO)
+## 🎯 Objetivo
+
+Tener Next.js + Supabase funcionando con base técnica lista para desarrollo real.
+
+## COMPLETADO
+Core setup
+✔ Next.js + TypeScript creado
+✔ Tailwind CSS configurado
+✔ Estructura base (components, lib, hooks, types)
+✔ Layout base (layout.tsx)
+✔ Home inicial funcional
+UI base
+✔ Button component
+✔ Header básico
+✔ Estilo inicial con Tailwind
+Supabase
+✔ Conexión cliente + servidor
+✔ Variables .env.local configuradas
+✔ Validación inicial de conexión
+DevOps básico
+✔ Git inicializado
+✔ GitHub conectado
+✔ Primer push limpio
+✔ Netlify configurado (deploy inicial)
+
+##  PENDIENTE CRÍTICO
+🔲 Validación real de Supabase en runtime (queries reales)
+🔲 Preparar estructura de auth (base)
+🔲 Testing básico de RLS desde frontend
+
+## 🧠 Estado real
+
+👉 Frontend + backend conectados, pero aún sin validación funcional completa de datos reales.
+
+# 🎨 FASE 2 — UI / Diseño visual (INICIADA)
+
+## HECHO
+✔ Layout base
+✔ Home inicial
+✔ Botones base
+✔ Tailwind system base
+
+## PENDIENTE
+🔲 Navbar final (premium)
+🔲 Footer
+🔲 Sistema visual completo (tipografía, espaciado, grid)
+🔲 Componentes reutilizables avanzados
+🔲 Responsive completo
+🔲 Dirección estética final (outdoor premium)
+
+---------------------------------------------------------------------------------------------
+
 ## 🔐 Estado actual del trabajo
 
 # 🎯 Objetivo
@@ -138,40 +191,15 @@ Tener el proyecto Next.js funcionando, conectado a Supabase y listo para desarro
 
 Actualmente el proyecto está en:
 
-# 🟢 FASE ACTUAL: FASE 1 — Setup del proyecto (Next.js)
+# 🟢 FASE ACTUAL: FASE 1 — Validación real de Supabase en runtime (queries reales)
 
-✔ YA COMPLETADO
-✔ Crear proyecto Next.js + TypeScript (INICIADO / FUNCIONANDO)
-✔ Configurar Tailwind CSS
-✔ Estructura base de carpetas (components, lib, hooks, types)
-✔ Primer layout básico (layout.tsx)
-✔ Home inicial funcional
-✔ Primeros componentes UI (Button, Header básico)
-✔ Estilo base con Tailwind
-✔ Conectar Supabase (cliente + servidor) 
-✔ Configurar variables de entorno (.env.local)
-🔲 Setup Git + GitHub
-🔲 Setup Netlify (deploy inicial)
-🔲 Validación de conexión real con Supabase
+🔲 Validación real de Supabase en runtime (queries reales)
+🔲 Preparar estructura de auth (base)
+🔲 Testing básico de RLS desde frontend
 
 # 🧠 Nota de estado
 
-👉 Ya hay frontend funcionando, pero aún no está conectado al backend real.
-
-# FASE 2 — UI / Diseño visual (INICIADA PARCIALMENTE)
-📊 Estado real
-✔ YA HECHO
-✔ Layout base inicial
-✔ Home con estructura inicial
-✔ Primer sistema de botones
-✔ Tailwind configurado
-🔲 PENDIENTE
-🔲 Navbar final (estructura premium)
-🔲 Footer
-🔲 Sistema visual completo (tipografía, espaciado, grid)
-🔲 Componentes reutilizables avanzados
-🔲 Responsive completo
-🔲 Dirección estética final premium outdoor
+👉 Ya hay fronted funcionando conectado a supabase y netlify
 
 ---------------------------------------------------------------------------------------------
 
@@ -185,14 +213,7 @@ Tests de RLS en SQL editor no son fiables. Se valida todo desde Next.js con el c
 
 ## 🧭 Siguiente paso previsto CLAVE (OBLIGATORIO)
 
-### 👉 Conectar Supabase al proyecto Next.js
-
-Sin esto:
-
-No hay autenticación real
-No hay datos reales
-No hay validación de RLS
-No hay CMS posible
+Realizar los test basicos de RLS antes de pasar a la fase 2, desde fronted. 
 
 ---------------------------------------------------------------------------------------------
 
@@ -252,14 +273,14 @@ FASE 2 — Base UI / Diseño visual
 ✔ Primer sistema de botones (Button component)
 ✔ Home con diseño inicial
 ✔ Estilo base con Tailwind
-🔲 Layout principal (Navbar, Footer)
-🔲 Sistema visual premium (tipografía, colores, espaciado)
-🔲 Componentes base reutilizables
-🔲 Diseño responsive inicial
+✔ Layout principal (Navbar, Footer)
+✔ Sistema visual premium (tipografía, colores, espaciado)
+✔ Componentes base reutilizables
+✔ Diseño responsive inicial
 
 FASE 3 — Web pública (frontend)
 
-🔲 Home
+✔ Home
 🔲 Historia de la marca
 🔲 Catálogo de productos
 🔲 Página de producto

@@ -336,3 +336,14 @@ with check (
     )
   )
 );
+
+-- =========================================================
+-- 6. GRANTS
+-- =========================================================
+
+-- Anon: solo puede insertar mensajes (formulario de contacto público)
+grant insert on table public.message to anon;
+
+-- Authenticated: acceso completo a su propio perfil y contenido publicado
+grant select on table public.product to authenticated;
+grant select on table public.page to authenticated;

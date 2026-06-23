@@ -1,7 +1,21 @@
+import Hero from '@/components/home/Hero'
+import ContactForm from '@/components/contact/ContactForm'
+
 export default function ContactoPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <h1 className="text-2xl font-semibold">Contacto</h1>
+    <main className="bg-[#0F0F0F]">
+
+      <Hero
+        imageUrl="/img/contacto.jpg"
+        eyebrow="Contacto"
+        title="Hablemos de tu próximo esquí"
+        description="Cuéntanos qué buscas y te responderemos personalmente."
+      />
+
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <ContactForm />
+      </section>
+
     </main>
-  );
+  )
 }

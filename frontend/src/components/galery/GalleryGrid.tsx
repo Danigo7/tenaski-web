@@ -1,0 +1,38 @@
+'use client'
+
+import GalleryItem from './GalleryItem'
+
+export type ImageSize = 'sm' | 'md' | 'lg'
+
+export type ImageItem = {
+  src: string
+  alt: string
+  size?: ImageSize
+}
+
+type GalleryGridProps = {
+  images: ImageItem[]
+}
+
+export default function GalleryGrid({ images }: GalleryGridProps) {
+  return (
+    <section className="bg-[#0F0F0F] py-20">
+      <div className="mx-auto max-w-6xl px-6">
+
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 auto-rows-[180px]">
+
+          {images.map((img) => (
+            <GalleryItem
+              key={img.src}
+              src={img.src}
+              alt={img.alt}
+              size={img.size}
+            />
+          ))}
+
+        </div>
+
+      </div>
+    </section>
+  )
+}

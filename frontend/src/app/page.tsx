@@ -14,6 +14,10 @@ export default function Home() {
         eyebrow="Pirineos · Hecho a mano"
         title="Esquís que cuentan algo."
         description="Cada par sale del taller con un nombre, una historia y la forma exacta del terreno para el que fue hecho."
+        buttons={[
+          { text: 'Ver catálogo', href: '/catalogo', variant: 'primary' },
+          { text: 'Nuestra historia', href: '/historia', variant: 'secondary' },
+        ]}
       />
 
       <Manifesto

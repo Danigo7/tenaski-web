@@ -35,7 +35,7 @@ export default function GaleriaPage() {
     <main className="bg-[#0F0F0F]">
 
       <Hero
-        imageUrl="/img/gallery-hero.jpg"
+        imageUrl="/img/heroimg.png"
         eyebrow="Galería"
         title="La montaña, tal y como la vivimos."
         description="Una selección de momentos, texturas y paisajes."

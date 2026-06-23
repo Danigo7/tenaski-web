@@ -6,7 +6,7 @@ export default function ContactoPage() {
     <main className="bg-[#0F0F0F]">
 
       <Hero
-        imageUrl="/img/contacto.jpg"
+        imageUrl="/img/heroimg.png"
         eyebrow="Contacto"
         title="Hablemos de tu próximo esquí"
         description="Cuéntanos qué buscas y te responderemos personalmente."

@@ -41,14 +41,19 @@ export default function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
+    <div className="max-w-xl space-y-6">
+      <p className="text-xs uppercase tracking-[0.3em] text-[#C4A882]">
+        Contáctanos
+      </p>
 
-      <input
-        name="nombre"
-        placeholder="Nombre"
-        required
-        className="w-full bg-[#1a1714] px-4 py-3 text-[#E8E4DC]"
-      />
+      <form onSubmit={handleSubmit} className="space-y-6">
+
+        <input
+          name="nombre"
+          placeholder="Nombre"
+          required
+          className="w-full bg-[#1a1714] px-4 py-3 text-[#E8E4DC]"
+        />
 
       <input
         name="email"
@@ -86,6 +91,7 @@ export default function ContactForm() {
         </p>
       )}
 
-    </form>
+      </form>
+    </div>
   )
 }

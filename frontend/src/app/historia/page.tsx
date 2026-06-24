@@ -13,6 +13,10 @@ export default function Historia() {
         eyebrow="Pirineos · Desde 2026"
         title="Una historia nacida en la montaña."
         description="Construimos esquís pensando en el tiempo, el terreno y las personas que los utilizarán."
+        buttons={[
+          { text: 'Ver catálogo', href: '/catalogo', variant: 'primary' },
+          { text: 'Volver al inicio', href: '/', variant: 'secondary' },
+        ]}
       />
 
       <Story

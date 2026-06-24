@@ -42,7 +42,7 @@ export default function Hero({ eyebrow, title, description, imageUrl, buttons }:
       </div>
 
       {/* ── CONTENIDO ─────────────────────────────────────── */}
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col justify-end px-6 pb-24">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col justify-end px-6 pb-30 md:pb-24">
 
         {/* Eyebrow en dorado */}
         <p className="mb-6 text-xs uppercase tracking-[0.3em] text-[#C4A882]">

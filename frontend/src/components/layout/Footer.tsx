@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 
 const navLinks = [
     { href: '/historia', label: 'Historia' },
@@ -18,12 +17,9 @@ export default function Footer() {
                {/* Bloque 1: Marca */}
                 <div className="md:col-span-1">
                     <Link href="/" className="flex items-center gap-3 w-fit">
-                        <Image
+                        <img
                             src="/img/logoo.png"
                             alt="Tena Skis"
-                            width={0}
-                            height={28}
-                            sizes="100vw"
                             className="w-auto h-7 object-contain"
                         />
                         <p className="font-['Cormorant_Garamond'] text-lg font-semibold tracking-widest uppercase text-[#E8E4DC]">
@@ -94,12 +90,9 @@ export default function Footer() {
                         <p className="mt-1 flex items-center gap-1.5">
                             Diseñado y desarrollado por{' '}
                             <Link href="http://danigostudios.netlify.app" className="flex items-center gap-1 text-[#E8E4DC]/30 hover:text-[#E8E4DC]/50 transition-colors duration-300">
-                                <Image
+                                <img
                                     src="/img/danigostudios-logo.png"
                                     alt="Danigo Studios"
-                                    width={0}
-                                    height={12}
-                                    sizes="100vw"
                                     className="w-auto h-3 object-contain opacity-50"
                                 />
                                 Danigo Studios

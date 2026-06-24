@@ -6,6 +6,8 @@ import ProductGrid from '@/components/catalog/ProductGrid'
 
 import CTA from '@/components/home/CTA'
 
+import ScrollToTop from '@/components/ui/ScrollToTop'
+
 export default function Catalogo() {
   return (
     <main className="bg-[#0F0F0F]">
@@ -21,15 +23,16 @@ export default function Catalogo() {
 
         buttons={[
           {
-            text: 'Volver al inicio',
-            href: '/',
+            text: 'Nuestra historia',
+            href: '/historia',
             variant: 'secondary',
           },
           {
-            text: 'Nuestra historia',
-            href: '/historia',
+            text: 'Contactar',
+            href: '/contacto',
             variant: 'primary',
           },
+
         ]}
       />
 
@@ -100,6 +103,8 @@ export default function Catalogo() {
 
         buttonHref="/contacto"
       />
+
+      <ScrollToTop />
 
     </main>
   )

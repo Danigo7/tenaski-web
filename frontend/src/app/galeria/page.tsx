@@ -1,6 +1,7 @@
 import Hero from '@/components/home/Hero'
 import GalleryGrid, { ImageItem } from '@/components/galery/GalleryGrid'
 import CTA from '@/components/home/CTA'
+import ScrollToTop from '@/components/ui/ScrollToTop'
 
 export default function GaleriaPage() {
   const images: ImageItem[] = [
@@ -43,13 +44,14 @@ export default function GaleriaPage() {
           {
             text: 'Ver catálogo',
             href: '/catalogo',
-            variant: 'secondary',
-          },
-          {
-            text: 'Contactar',
-            href: '/contacto',
             variant: 'primary',
           },
+          {
+            text: 'Volver al inicio',
+            href: '/',
+            variant: 'secondary',
+          },
+        
         ]}
       />
 
@@ -62,6 +64,8 @@ export default function GaleriaPage() {
         buttonText="Ver catálogo"
         buttonHref="/catalogo"
       />
+
+      <ScrollToTop />
 
     </main>
   )

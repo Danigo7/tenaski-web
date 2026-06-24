@@ -281,11 +281,11 @@ FASE 2 — Base UI / Diseño visual
 FASE 3 — Web pública (frontend)
 
 ✔ Home
-🔲 Historia de la marca
-🔲 Catálogo de productos
-🔲 Página de producto
-🔲 Galería
-🔲 Contacto + formulario (Supabase messages)
+✔ Historia de la marca
+✔ Catálogo de productos
+✔ Página de producto
+✔ Galería
+✔ Contacto + formulario (Supabase messages)
 
 FASE 4 — Autenticación
 

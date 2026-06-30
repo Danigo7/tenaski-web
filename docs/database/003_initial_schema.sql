@@ -347,3 +347,39 @@ grant insert on table public.message to anon;
 -- Authenticated: acceso completo a su propio perfil y contenido publicado
 grant select on table public.product to authenticated;
 grant select on table public.page to authenticated;
+grant select on table public.profile to authenticated;
+grant select on product to authenticated;
+grant insert on product to authenticated;
+
+grant select on table public.image to authenticated;
+grant insert on table public.image to authenticated;
+grant update on table public.image to authenticated;
+grant delete on table public.image to authenticated;
+
+grant select on table public.product_image to authenticated;
+grant insert on table public.product_image to authenticated;
+grant update on table public.product_image to authenticated;
+grant delete on table public.product_image to authenticated;
+
+grant insert on table public.product to authenticated;
+grant update on table public.product to authenticated;
+grant delete on table public.product to authenticated;
+
+grant select on product to anon;
+grant select on product to authenticated;
+
+grant select on product_image to anon;
+grant select on product_image to authenticated;
+
+grant select on image to anon;
+grant select on image to authenticated;
+
+GRANT DELETE ON public.message TO authenticated;
+
+CREATE POLICY "message_delete"
+ON public.message
+FOR DELETE
+TO authenticated
+USING (
+  get_user_role() = ANY (ARRAY['admin'::text, 'editor'::text])
+);

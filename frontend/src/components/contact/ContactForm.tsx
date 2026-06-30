@@ -3,95 +3,175 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 
+// Campos del formulario de contacto
+interface FormState {
+  nombre: string
+  email: string
+  telefono: string
+  asunto: string
+  mensaje: string
+}
+
+const EMPTY: FormState = {
+  nombre: '',
+  email: '',
+  telefono: '',
+  asunto: '',
+  mensaje: '',
+}
+
 export default function ContactForm() {
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState('')
+  const [form, setForm] = useState<FormState>(EMPTY)
+  const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle')
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleChange(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    setStatus('sending')
 
-    setLoading(true)
-    setError('')
-    setSuccess(false)
-
-    const form = new FormData(e.currentTarget)
-
-    const nombre = form.get('nombre') as string
-    const email = form.get('email') as string
-    const mensaje = form.get('mensaje') as string
-
-    const { error } = await supabase.from('message').insert(
-      {
-        nombre,
-        email,
-        mensaje,
-      },
-    )
-
-    setLoading(false)
+    const { error } = await supabase.from('message').insert({
+      nombre:   form.nombre,
+      email:    form.email,
+      telefono: form.telefono || null,
+      asunto:   form.asunto,
+      mensaje:  form.mensaje,
+      estado:   'nuevo',
+    })
 
     if (error) {
-      setError('No se pudo enviar el mensaje')
-      return
+      console.error(error)
+      setStatus('error')
+    } else {
+      setStatus('ok')
+      setForm(EMPTY)
     }
-
-    setSuccess(true)
-    e.currentTarget.reset()
   }
 
   return (
-    <div className="max-w-xl space-y-6">
-      <p className="text-xs uppercase tracking-[0.3em] text-[#C4A882]">
-        Contáctanos
-      </p>
+    <div className="mx-auto max-w-2xl">
+
+      {/* Título de sección */}
+      <h2 className="font-['Cormorant_Garamond'] text-3xl font-semibold text-[#E8E4DC] mb-8">
+        Escríbenos
+      </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
 
-        <input
-          name="nombre"
-          placeholder="Nombre"
-          required
-          className="w-full bg-[#1a1714] px-4 py-3 text-[#E8E4DC]"
-        />
+        {/* Nombre + Email */}
+        <div className="grid gap-6 sm:grid-cols-2">
+          <Field
+            label="Nombre *"
+            name="nombre"
+            type="text"
+            value={form.nombre}
+            onChange={handleChange}
+            required
+          />
+          <Field
+            label="Email *"
+            name="email"
+            type="email"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-      <input
-        name="email"
-        type="email"
-        placeholder="Email"
-        required
-        className="w-full bg-[#1a1714] px-4 py-3 text-[#E8E4DC]"
-      />
+        {/* Teléfono + Asunto */}
+        <div className="grid gap-6 sm:grid-cols-2">
+          <Field
+            label="Teléfono"
+            name="telefono"
+            type="tel"
+            value={form.telefono}
+            onChange={handleChange}
+            placeholder="+34 600 000 000"
+          />
+          <Field
+            label="Asunto *"
+            name="asunto"
+            type="text"
+            value={form.asunto}
+            onChange={handleChange}
+            placeholder="¿En qué podemos ayudarte?"
+            required
+          />
+        </div>
 
-      <textarea
-        name="mensaje"
-        placeholder="Mensaje"
-        rows={6}
-        required
-        className="w-full bg-[#1a1714] px-4 py-3 text-[#E8E4DC]"
-      />
+        {/* Mensaje */}
+        <div className="space-y-2">
+          <label className="block text-sm text-[#C4A882]">
+            Mensaje *
+          </label>
+          <textarea
+            name="mensaje"
+            value={form.mensaje}
+            onChange={handleChange}
+            required
+            rows={6}
+            placeholder="Cuéntanos qué buscas..."
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-[#E8E4DC] placeholder-zinc-500 outline-none transition focus:border-[#C4A882] resize-none"
+          />
+        </div>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="bg-[#C4A882] px-8 py-3 text-sm uppercase text-[#0F0F0F]"
-      >
-        {loading ? 'Enviando...' : 'Enviar mensaje'}
-      </button>
+        {/* Submit */}
+        <button
+          type="submit"
+          disabled={status === 'sending'}
+          className="w-full rounded-lg bg-[#C4A882] px-6 py-3 font-medium text-[#0F0F0F] transition hover:bg-[#b3976f] disabled:opacity-50"
+        >
+          {status === 'sending' ? 'Enviando…' : 'Enviar mensaje'}
+        </button>
 
-      {success && (
-        <p className="text-green-400 text-sm">
-          Mensaje enviado correctamente
-        </p>
-      )}
-
-      {error && (
-        <p className="text-red-400 text-sm">
-          {error}
-        </p>
-      )}
+        {/* Feedback */}
+        {status === 'ok' && (
+          <p className="text-center text-sm text-emerald-400">
+            Mensaje enviado. Te responderemos en breve.
+          </p>
+        )}
+        {status === 'error' && (
+          <p className="text-center text-sm text-red-400">
+            Ha ocurrido un error. Inténtalo de nuevo.
+          </p>
+        )}
 
       </form>
+    </div>
+  )
+}
+
+// ── Campo reutilizable ───────────────────────────────────────────────────────
+
+interface FieldProps {
+  label: string
+  name: string
+  type: string
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  required?: boolean
+  placeholder?: string
+}
+
+function Field({ label, name, type, value, onChange, required, placeholder }: FieldProps) {
+  return (
+    <div className="space-y-2">
+      <label className="block text-sm text-[#C4A882]">
+        {label}
+      </label>
+      <input
+        name={name}
+        type={type}
+        value={value}
+        onChange={onChange}
+        required={required}
+        placeholder={placeholder}
+        className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-3 text-[#E8E4DC] placeholder-zinc-500 outline-none transition focus:border-[#C4A882]"
+      />
     </div>
   )
 }

@@ -383,3 +383,114 @@ TO authenticated
 USING (
   get_user_role() = ANY (ARRAY['admin'::text, 'editor'::text])
 );
+
+-- =========================================================
+-- 004_content_block.sql
+-- Contenido editable: Hero global, Manifesto, Process, Historia
+-- =========================================================
+
+-- -------------------------
+-- TABLA
+-- -------------------------
+-- Una fila por "bloque" de contenido. `seccion` es la clave única
+-- que identifica cada bloque (ej: 'hero_global', 'home_manifesto').
+-- `data` guarda los campos de texto en JSON, flexible por bloque.
+-- `imagen_id` apunta a la tabla image ya existente (reutilizamos la librería).
+create table public.content_block (
+  id          uuid primary key default gen_random_uuid(),
+  seccion     text unique not null,
+  data        jsonb not null default '{}'::jsonb,
+  imagen_id   uuid references public.image(id) on delete set null,
+  updated_by  uuid references public.profile(id) on delete set null,
+  created_at  timestamptz default now(),
+  updated_at  timestamptz default now()
+);
+
+-- -------------------------
+-- SEED: filas iniciales para cada sección editable
+-- -------------------------
+insert into public.content_block (seccion, data) values
+  ('hero_global', jsonb_build_object(
+    'eyebrow', 'Pirineos · Hecho a mano',
+    'titulo', 'Esquís que cuentan algo.',
+    'descripcion', 'Cada par sale del taller con un nombre, una historia y la forma exacta del terreno para el que fue hecho.'
+  )),
+  ('home_manifesto', jsonb_build_object(
+    'eyebrow', 'Nuestra filosofía',
+    'titulo', 'No fabricamos esquís. Construimos compañeros de montaña.',
+    'descripcion', 'Cada pieza nace en el taller, donde la madera, la experiencia y el terreno se encuentran para crear algo que durará muchos inviernos.'
+  )),
+  ('home_process', jsonb_build_object(
+    'eyebrow', 'El taller',
+    'titulo', 'Cada esquí pasa por cuatro etapas.',
+    'descripcion', 'El proceso combina experiencia, materiales seleccionados y una construcción artesanal pensada para durar muchos inviernos.'
+  )),
+  ('home_process_step_1', jsonb_build_object('titulo', 'Diseño', 'descripcion', 'Cada modelo nace pensando en un terreno y una forma de esquiar.')),
+  ('home_process_step_2', jsonb_build_object('titulo', 'Madera', 'descripcion', 'Seleccionamos materiales resistentes y ligeros para cada construcción.')),
+  ('home_process_step_3', jsonb_build_object('titulo', 'Construcción', 'descripcion', 'Cada pieza se trabaja a mano dentro del taller.')),
+  ('home_process_step_4', jsonb_build_object('titulo', 'Acabado', 'descripcion', 'Los detalles finales convierten cada esquí en una pieza única.')),
+  ('historia_story', jsonb_build_object(
+    'eyebrow', 'El origen',
+    'titulo', 'Todo empezó en un pequeño taller.',
+    'descripcion', 'Tena Skis nace del deseo de recuperar una forma más humana de fabricar esquís, donde cada pieza tenga personalidad propia y una conexión directa con la montaña.'
+  )),
+  ('historia_workshop', jsonb_build_object(
+    'eyebrow', 'El taller',
+    'titulo', 'Donde la madera se convierte en montaña.',
+    'descripcion', 'No trabajamos en una fábrica. Trabajamos en un espacio donde cada herramienta, cada material y cada decisión forman parte del resultado final.',
+    'detalles', jsonb_build_array('Maderas seleccionadas', 'Herramientas tradicionales', 'Acabados manuales')
+  ));
+
+-- -------------------------
+-- RLS
+-- -------------------------
+alter table public.content_block enable row level security;
+
+-- Lectura pública: cualquiera (anon o authenticated) puede leer,
+-- porque estos bloques alimentan páginas públicas.
+create policy "content_block_select"
+on public.content_block for select
+using (true);
+
+-- Solo admin/editor pueden modificar contenido.
+create policy "content_block_update"
+on public.content_block for update
+using (get_user_role() in ('admin', 'editor'))
+with check (get_user_role() in ('admin', 'editor'));
+
+-- -------------------------
+-- GRANTS
+-- -------------------------
+grant select on table public.content_block to anon, authenticated;
+grant update on table public.content_block to authenticated;
+
+-- Borra la fila global que insertamos antes
+DELETE FROM public.content_block WHERE seccion = 'hero_global';
+
+-- Inserta un hero por página
+INSERT INTO public.content_block (seccion, data) VALUES
+  ('hero_home', jsonb_build_object(
+    'eyebrow', 'Pirineos · Hecho a mano',
+    'titulo', 'Esquís que cuentan algo.',
+    'descripcion', 'Cada par sale del taller con un nombre, una historia y la forma exacta del terreno para el que fue hecho.'
+  )),
+  ('hero_historia', jsonb_build_object(
+    'eyebrow', 'Pirineos · Desde 2026',
+    'titulo', 'Una historia nacida en la montaña.',
+    'descripcion', 'Construimos esquís pensando en el tiempo, el terreno y las personas que los utilizarán.'
+  )),
+  ('hero_catalogo', jsonb_build_object(
+    'eyebrow', 'Colección',
+    'titulo', 'Nuestros esquís.',
+    'descripcion', 'Cada modelo nace para un terreno, una forma de esquiar y una manera distinta de entender la montaña.'
+  )),
+  ('hero_galeria', jsonb_build_object(
+    'eyebrow', 'Galería',
+    'titulo', 'La montaña, tal y como la vivimos.',
+    'descripcion', 'Una selección de momentos, texturas y paisajes.'
+  )),
+  ('hero_contacto', jsonb_build_object(
+    'eyebrow', 'Contacto',
+    'titulo', 'Hablemos de tu próximo esquí',
+    'descripcion', 'Cuéntanos qué buscas y te responderemos personalmente.'
+  ));

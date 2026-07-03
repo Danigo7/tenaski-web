@@ -25,6 +25,17 @@ type ProductRow = {
 export default async function Catalogo() {
   const supabase = await createClient()
 
+  const { data: heroBlock } = await supabase
+    .from('content_block')
+    .select(`
+      data,
+      image:imagen_id (
+        ruta_storage
+      )
+    `)
+    .eq('seccion', 'hero_catalogo')
+    .single()
+
   // Traer productos publicados con su imagen principal
   const { data, error } = await supabase
     .from('product')
@@ -69,10 +80,22 @@ export default async function Catalogo() {
     <main className="bg-[#0F0F0F]">
 
       <Hero
-        imageUrl="/img/heroimg.png"
-        eyebrow="Colección"
-        title="Nuestros esquís."
-        description="Cada modelo nace para un terreno, una forma de esquiar y una manera distinta de entender la montaña."
+        imageUrl={
+          heroBlock?.image?.[0]?.ruta_storage ??
+          '/img/heroimg.png'
+        }
+        eyebrow={
+          heroBlock?.data?.eyebrow ??
+          'Colección'
+        }
+        title={
+          heroBlock?.data?.titulo ??
+          'Nuestros esquís.'
+        }
+        description={
+          heroBlock?.data?.descripcion ??
+          'Cada modelo nace para un terreno, una forma de esquiar y una manera distinta de entender la montaña.'
+        }
         buttons={[
           { text: 'Nuestra historia', href: '/historia', variant: 'secondary' },
           { text: 'Contactar', href: '/contacto', variant: 'primary' },

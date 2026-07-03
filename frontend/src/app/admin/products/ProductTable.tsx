@@ -327,8 +327,8 @@ export default function ProductTable({ products }: ProductTableProps) {
       </div>
 
       {/* ── Tabla ─────────────────────────────────────── */}
-      <div className="rounded-xl border border-zinc-800 overflow-hidden">
-        <table className="w-full">
+      <div className="overflow-x-auto rounded-xl border border-zinc-800">
+        <table className="min-w-[720px] w-full">
           <thead className="bg-zinc-900">
             <tr>
               <th className="px-6 py-4 text-left text-sm font-medium text-zinc-400">Nombre</th>
@@ -393,16 +393,16 @@ export default function ProductTable({ products }: ProductTableProps) {
                 </td>
 
                 <td className="px-6 py-4">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center sm:justify-end">
                     <button
                       onClick={() => openEdit(product)}
-                      className="px-3 py-1.5 text-xs font-medium rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white transition"
+                      className="px-3 py-1.5 text-xs font-medium rounded-md bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white transition w-full sm:w-auto"
                     >
                       Editar
                     </button>
                     <button
                       onClick={() => setConfirmDelete(product.id)}
-                      className="px-3 py-1.5 text-xs font-medium rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-900/60 hover:text-red-400 transition"
+                      className="px-3 py-1.5 text-xs font-medium rounded-md bg-zinc-800 text-zinc-400 hover:bg-red-900/60 hover:text-red-400 transition w-full sm:w-auto"
                     >
                       Eliminar
                     </button>

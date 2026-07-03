@@ -11,9 +11,18 @@ export default async function DashboardPage() {
     supabase.from('image').select('*', { count: 'exact', head: true }),
   ])
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   const productCount = products.count ?? 0
   const messageCount = messages.count ?? 0
   const imageCount   = images.count   ?? 0
+
+  const displayName =
+    user?.user_metadata?.full_name ||
+    user?.email?.split('@')[0] ||
+    'Administrador'
 
   // Últimos 5 mensajes — solo los campos necesarios
   const { data: latestMessages } = await supabase
@@ -28,7 +37,8 @@ export default async function DashboardPage() {
       {/* HEADER */}
       <div>
         <h1 className="text-4xl font-semibold">Dashboard</h1>
-        <p className="mt-2 text-zinc-400">Resumen general del sistema Tenaski CMS</p>
+        <p className="mt-3 text-lg text-zinc-200">Bienvenido, {displayName}</p>
+        <p className="mt-4 text-zinc-400">Resumen general del sistema de Tenaski</p>
       </div>
 
       {/* KPIs */}

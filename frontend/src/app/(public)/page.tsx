@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+
 import Hero from '@/components/home/Hero'
 import Manifesto from '@/components/home/Manifesto'
 import Process from '@/components/home/Process'
@@ -6,13 +7,49 @@ import FeaturedProduct from '@/components/home/FeaturedProduct'
 import CTA from '@/components/home/CTA'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 
-// ─────────────────────────────────────────────────────────
-// Server Component
-// ─────────────────────────────────────────────────────────
 export default async function Home() {
   const supabase = await createClient()
 
-  // Producto destacado: publicado + destacado = true
+  // ─────────────────────────────────────────────
+  // HERO HOME
+  // ─────────────────────────────────────────────
+  const { data: hero } = await supabase
+    .from('content_block')
+    .select('data, image:imagen_id (ruta_storage)')
+    .eq('seccion', 'hero_home')
+    .single()
+
+  // ─────────────────────────────────────────────
+  // MANIFESTO HOME
+  // ─────────────────────────────────────────────
+  const { data: manifesto } = await supabase
+    .from('content_block')
+    .select('data, image:imagen_id (ruta_storage)')
+    .eq('seccion', 'home_manifesto')
+    .single()
+
+  // ─────────────────────────────────────────────
+  // PROCESS HOME + STEPS
+  // ─────────────────────────────────────────────
+  const { data: processBlocks } = await supabase
+    .from('content_block')
+    .select('seccion, data, image:imagen_id (ruta_storage)')
+    .in('seccion', [
+      'home_process',
+      'home_process_step_1',
+      'home_process_step_2',
+      'home_process_step_3',
+      'home_process_step_4',
+    ])
+
+  const process = processBlocks?.find(p => p.seccion === 'home_process')
+
+  const step = (n: number) =>
+    processBlocks?.find(p => p.seccion === `home_process_step_${n}`)
+
+  // ─────────────────────────────────────────────
+  // PRODUCTO DESTACADO (lo dejas igual)
+  // ─────────────────────────────────────────────
   const { data: featured } = await supabase
     .from('product')
     .select(`
@@ -29,11 +66,9 @@ export default async function Home() {
     `)
     .eq('publicado', true)
     .eq('destacado', true)
-    .order('updated_at', { ascending: false })
     .limit(1)
     .single()
 
-  // Imagen principal del producto destacado
   const featuredImage = featured
     ? (() => {
         const imgs = featured.product_image as any[]
@@ -43,59 +78,61 @@ export default async function Home() {
     : '/img/manifestoimg.png'
 
   return (
-    <main>
-
+    <>
+      {/* HERO */}
       <Hero
-        imageUrl="/img/heroimg.png"
-        eyebrow="Pirineos · Hecho a mano"
-        title="Esquís que cuentan algo."
-        description="Cada par sale del taller con un nombre, una historia y la forma exacta del terreno para el que fue hecho."
+        imageUrl={hero?.image?.[0]?.ruta_storage ?? '/img/heroimg.png'}
+        eyebrow={hero?.data?.eyebrow ?? ''}
+        title={hero?.data?.titulo ?? ''}
+        description={hero?.data?.descripcion ?? ''}
         buttons={[
           { text: 'Ver catálogo', href: '/catalogo', variant: 'primary' },
           { text: 'Nuestra historia', href: '/historia', variant: 'secondary' },
         ]}
       />
 
+      {/* MANIFESTO */}
       <Manifesto
-        imageUrl="/img/manifestoimg.png"
-        eyebrow="Nuestra filosofía"
-        title="No fabricamos esquís. Construimos compañeros de montaña."
-        description="Cada pieza nace en el taller, donde la madera, la experiencia y el terreno se encuentran para crear algo que durará muchos inviernos."
+        imageUrl={manifesto?.image?.[0]?.ruta_storage ?? '/img/manifestoimg.png'}
+        eyebrow={manifesto?.data?.eyebrow ?? ''}
+        title={manifesto?.data?.titulo ?? ''}
+        description={manifesto?.data?.descripcion ?? ''}
       />
 
+      {/* PROCESS */}
       <Process
-        eyebrow="El taller"
-        title="Cada esquí pasa por cuatro etapas."
-        description="El proceso combina experiencia, materiales seleccionados y una construcción artesanal pensada para durar muchos inviernos."
+        eyebrow={process?.data?.eyebrow ?? ''}
+        title={process?.data?.titulo ?? ''}
+        description={process?.data?.descripcion ?? ''}
         steps={[
           {
-            title: 'Diseño',
-            description: 'Cada modelo nace pensando en un terreno y una forma de esquiar.',
-            imageUrl: '/img/designimg.png',
-            imageAlt: 'Diseño artesanal de esquís',
+            title: step(1)?.data?.titulo ?? '',
+            description: step(1)?.data?.descripcion ?? '',
+            imageUrl: step(1)?.image?.[0]?.ruta_storage ?? '/img/designimg.png',
+            imageAlt: 'Step 1',
           },
           {
-            title: 'Madera',
-            description: 'Seleccionamos materiales resistentes y ligeros para cada construcción.',
-            imageUrl: '/img/woodimg.jpeg',
-            imageAlt: 'Selección de madera',
+            title: step(2)?.data?.titulo ?? '',
+            description: step(2)?.data?.descripcion ?? '',
+            imageUrl: step(2)?.image?.[0]?.ruta_storage ?? '/img/woodimg.jpeg',
+            imageAlt: 'Step 2',
           },
           {
-            title: 'Construcción',
-            description: 'Cada pieza se trabaja a mano dentro del taller.',
-            imageUrl: '/img/buildimg.jpeg',
-            imageAlt: 'Construcción de esquís',
+            title: step(3)?.data?.titulo ?? '',
+            description: step(3)?.data?.descripcion ?? '',
+            imageUrl: step(3)?.image?.[0]?.ruta_storage ?? '/img/buildimg.jpeg',
+            imageAlt: 'Step 3',
           },
           {
-            title: 'Acabado',
-            description: 'Los detalles finales convierten cada esquí en una pieza única.',
-            imageUrl: '/img/finishimg.png',
-            imageAlt: 'Acabado artesanal',
+            title: step(4)?.data?.titulo ?? '',
+            description: step(4)?.data?.descripcion ?? '',
+            imageUrl: step(4)?.image?.[0]?.ruta_storage ?? '/img/finishimg.png',
+            imageAlt: 'Step 4',
           },
         ]}
       />
 
-      {/* Solo renderizar FeaturedProduct si hay un producto destacado */}
+      {/* FEATURED PRODUCT */}
       {featured ? (
         <FeaturedProduct
           eyebrow="Producto destacado"
@@ -105,11 +142,9 @@ export default async function Home() {
           buttonText="Descubrir modelo"
           buttonHref={`/catalogo/${featured.slug}`}
         />
-      ) : (
-        // Fallback vacío si no hay ningún producto destacado configurado
-        null
-      )}
+      ) : null}
 
+      {/* CTA */}
       <CTA
         eyebrow="Empieza el viaje"
         title="Cada esquí empieza como un trozo de madera."
@@ -119,7 +154,6 @@ export default async function Home() {
       />
 
       <ScrollToTop />
-
-    </main>
+    </>
   )
 }

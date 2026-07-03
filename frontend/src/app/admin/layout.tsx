@@ -19,76 +19,87 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen flex bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      <div className="mx-auto grid min-h-screen max-w-[1600px] grid-cols-1 gap-4 p-4 sm:p-6 md:grid-cols-[280px_1fr]">
 
-      {/* SIDEBAR */}
-      <aside className="w-72 border-r border-zinc-800 bg-zinc-950 flex flex-col justify-between">
+        <details className="rounded-3xl border border-zinc-800 bg-zinc-950 p-4 shadow-xl shadow-black/30 md:hidden">
+          <summary className="flex cursor-pointer items-center justify-between text-sm font-semibold text-zinc-100">
+            Menú admin
+            <span>☰</span>
+          </summary>
+          <div className="mt-4 space-y-2 text-sm text-zinc-300">
+            <Link href="/admin/dashboard" className="block rounded-2xl px-4 py-3 hover:bg-zinc-900 hover:text-white">
+              Dashboard
+            </Link>
+            <Link href="/admin/products" className="block rounded-2xl px-4 py-3 hover:bg-zinc-900 hover:text-white">
+              Productos
+            </Link>
+            <Link href="/admin/content" className="block rounded-2xl px-4 py-3 hover:bg-zinc-900 hover:text-white">
+              Contenido
+            </Link>
+            <Link href="/admin/images" className="block rounded-2xl px-4 py-3 hover:bg-zinc-900 hover:text-white">
+              Imágenes
+            </Link>
+            <Link href="/admin/messages" className="block rounded-2xl px-4 py-3 hover:bg-zinc-900 hover:text-white">
+              Mensajes
+            </Link>
+            <Link href="/" target="_blank" rel="noreferrer" className="mt-2 flex items-center gap-2 rounded-2xl bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 hover:bg-zinc-900 hover:text-white transition">
+              <img src="/img/logoo.png" alt="Tenaski" className="h-4 w-4 object-contain" />
+              Ver Web
+            </Link>
+          </div>
+        </details>
 
-        {/* TOP */}
-        <div>
-
-          {/* BRAND */}
-          <div className="p-8 border-b border-zinc-800">
-
-            <div className="flex items-center gap-3">
-              <img
-                src="/img/logoo.png"
-                alt="Tenaski"
-                className="w-10 h-10 object-contain"
-              />
-
-              <div>
-                <h1 className="text-lg font-semibold tracking-wide">
-                  TENASKI
-                </h1>
-
-                <p className="text-xs text-zinc-500 tracking-[0.2em]">
-                  PANEL ADMIN
-                </p>
+        <aside className="hidden rounded-3xl border border-zinc-800 bg-zinc-950 shadow-xl shadow-black/30 md:flex md:flex-col md:justify-between">
+          <div>
+            <div className="p-8 border-b border-zinc-800">
+              <div className="flex items-center gap-3">
+                <img
+                  src="/img/logoo.png"
+                  alt="Tenaski"
+                  className="w-10 h-10 object-contain"
+                />
+                <div>
+                  <h1 className="text-lg font-semibold tracking-wide">TENASKI</h1>
+                  <p className="text-xs text-zinc-500 tracking-[0.2em]">PANEL ADMIN</p>
+                </div>
               </div>
             </div>
 
+            <nav className="p-6 space-y-2 text-sm text-zinc-300">
+              <Link href="/admin/dashboard" className="block rounded-2xl px-4 py-3 hover:bg-zinc-900 hover:text-white">
+                Dashboard
+              </Link>
+              <Link href="/admin/products" className="block rounded-2xl px-4 py-3 hover:bg-zinc-900 hover:text-white">
+                Productos
+              </Link>
+              <Link href="/admin/content" className="block rounded-2xl px-4 py-3 hover:bg-zinc-900 hover:text-white">
+                Contenido
+              </Link>
+              <Link href="/admin/images" className="block rounded-2xl px-4 py-3 hover:bg-zinc-900 hover:text-white">
+                Imágenes
+              </Link>
+              <Link href="/admin/messages" className="block rounded-2xl px-4 py-3 hover:bg-zinc-900 hover:text-white">
+                Mensajes
+              </Link>
+              <Link href="/" target="_blank" rel="noreferrer" className="mt-2 flex items-center gap-2 rounded-2xl bg-white/5 px-4 py-3 text-sm font-medium text-zinc-100 hover:bg-zinc-900 hover:text-white transition">
+                <img src="/img/logoo.png" alt="Tenaski" className="h-4 w-4 object-contain" />
+                Ver Web
+              </Link>
+            </nav>
           </div>
 
-          {/* NAV */}
-          <nav className="p-6 space-y-2">
+          <div className="border-t border-zinc-800 p-6">
+            <LogoutButton />
+          </div>
+        </aside>
 
-            <Link href="/admin/dashboard" className="block px-3 py-2 rounded hover:bg-zinc-900 text-sm">
-              Dashboard
-            </Link>
+        {/* MAIN CONTENT */}
+        <main className="flex-1 rounded-3xl border border-zinc-800 bg-zinc-950 p-4 shadow-xl shadow-black/30 sm:p-6 md:p-8">
+          {children}
+        </main>
 
-            <Link href="/admin/products" className="block px-3 py-2 rounded hover:bg-zinc-900 text-sm">
-              Productos
-            </Link>
-
-            <Link href="/admin/content" className="block px-3 py-2 rounded hover:bg-zinc-900 text-sm">
-              Contenido
-            </Link>
-
-            <Link href="/admin/images" className="block px-3 py-2 rounded hover:bg-zinc-900 text-sm">
-              Imágenes
-            </Link>
-
-            <Link href="/admin/messages" className="block px-3 py-2 rounded hover:bg-zinc-900 text-sm">
-              Mensajes
-            </Link>
-
-          </nav>
-
-        </div>
-
-        {/* BOTTOM */}
-        <div className="p-6 border-t border-zinc-800">
-          <LogoutButton />
-        </div>
-
-      </aside>
-
-      {/* MAIN CONTENT */}
-      <main className="flex-1 p-10 bg-zinc-950">
-        {children}
-      </main>
-
+      </div>
     </div>
   )
 }

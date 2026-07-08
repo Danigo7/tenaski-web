@@ -42,13 +42,22 @@ export default async function ContentPage() {
     .order('created_at', { ascending: false })
 
   // ─────────────────────────────────────────────
-  // MANIFESTO (HOME)
-  // ─────────────────────────────────────────────
-  const { data: manifesto } = await supabase
-    .from('content_block')
-    .select('*')
-    .eq('seccion', 'home_manifesto')
-    .single()
+// MANIFESTO (HOME)
+// ─────────────────────────────────────────────
+const { data: manifesto } = await supabase
+  .from('content_block')
+  .select(`
+    id,
+    seccion,
+    data,
+    imagen_id,
+    image:imagen_id (
+      id,
+      ruta_storage
+    )
+  `)
+  .eq('seccion', 'home_manifesto')
+  .single()
 
   // ─────────────────────────────────────────────
   // PROCESS (HOME)

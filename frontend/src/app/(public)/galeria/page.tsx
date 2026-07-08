@@ -4,6 +4,13 @@ import GalleryGrid, { ImageItem } from '@/components/galery/GalleryGrid'
 import CTA from '@/components/home/CTA'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 
+function getImage(block: any): string | null {
+  const img = block?.image
+  if (!img) return null
+  if (Array.isArray(img)) return img[0]?.ruta_storage ?? null
+  return img.ruta_storage ?? null
+}
+
 export default async function GaleriaPage() {
   const supabase = await createClient()
   const { data: heroBlock } = await supabase
@@ -49,10 +56,7 @@ export default async function GaleriaPage() {
     <main className="bg-[#0F0F0F]">
 
       <Hero
-        imageUrl={
-          heroBlock?.image?.[0]?.ruta_storage ??
-          '/img/heroimg.png'
-        }
+        imageUrl={getImage(heroBlock) ?? '/img/heroimg.png'}
         eyebrow={
           heroBlock?.data?.eyebrow ??
           'Galería'

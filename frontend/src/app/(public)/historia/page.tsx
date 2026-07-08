@@ -6,6 +6,13 @@ import Workshop from '@/components/history/Workshop'
 import CTA from '@/components/home/CTA'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 
+function getImage(block: any): string | null {
+  const img = block?.image
+  if (!img) return null
+  if (Array.isArray(img)) return img[0]?.ruta_storage ?? null
+  return img.ruta_storage ?? null
+}
+
 export default async function Historia() {
   const supabase = await createClient()
   const { data: heroBlock } = await supabase
@@ -40,6 +47,8 @@ export default async function Historia() {
     historiaBlocks?.find((block) => block.seccion === 'historia_values') ?? null
   const workshopBlock =
     historiaBlocks?.find((block) => block.seccion === 'historia_workshop') ?? null
+
+  const heroData = heroBlock?.data ?? {}
 
   type HistoryValue = {
     number?: string
@@ -81,10 +90,7 @@ export default async function Historia() {
   return (
     <>
       <Hero
-        imageUrl={
-          heroBlock?.image?.[0]?.ruta_storage ??
-          '/img/heroimg.png'
-        }
+        imageUrl={getImage(heroBlock) ?? '/img/heroimg.png'}
         eyebrow={
           heroBlock?.data?.eyebrow ??
           'Pirineos · Desde 2026'
@@ -113,7 +119,7 @@ export default async function Historia() {
           storyBlock?.data?.descripcion ??
           'Tena Skis nace del deseo de recuperar una forma más humana de fabricar esquís, donde cada pieza tenga personalidad propia y una conexión directa con la montaña.'
         }
-        imageUrl={storyBlock?.image?.[0]?.ruta_storage ?? '/img/storyimg.jpeg'}
+        imageUrl={getImage(storyBlock) ?? '/img/storyimg.jpeg'}
       />
 
       <Values
@@ -130,7 +136,7 @@ export default async function Historia() {
           workshopBlock?.data?.descripcion ??
           'No trabajamos en una fábrica. Trabajamos en un espacio donde cada herramienta, cada material y cada decisión forman parte del resultado final.'
         }
-        imageUrl={workshopBlock?.image?.[0]?.ruta_storage ?? '/img/workshoppimg.png'}
+        imageUrl={getImage(workshopBlock) ?? '/img/workshoppimg.png'}
         details={
           workshopBlock?.data?.detalles ?? [
             'Maderas seleccionadas',

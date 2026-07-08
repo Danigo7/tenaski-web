@@ -11,11 +11,19 @@ type ImageRow = {
   nombre_archivo: string
 }
 
+// Misma idea que en los otros forms: `image` puede venir como objeto
+// o como array según cómo PostgREST resuelva la FK en runtime.
+type ImageRelation =
+  | { id: string; ruta_storage: string }
+  | { id: string; ruta_storage: string }[]
+  | null
+  | undefined
+
 type Step = {
   titulo?: string
   descripcion?: string
   imagen_id?: string | null
-  image?: { id: string; ruta_storage: string }[] | null
+  image?: ImageRelation
   uploadedPreview?: { id: string; ruta_storage: string } | null
 }
 
@@ -27,13 +35,23 @@ type ProcessBlock = {
     titulo?: string
     descripcion?: string
   }
-  image: { id: string; ruta_storage: string }[] | null
+  image: ImageRelation
 } | null
 
 type Props = {
   block: ProcessBlock
   steps: Record<string, Step>
   imageLibrary: ImageRow[]
+}
+
+// ─────────────────────────────────────────────
+// HELPER: extrae ruta_storage sea objeto o array
+// (mismo patrón que en page.tsx / HeroContentForm / ManifestoContentForm)
+// ─────────────────────────────────────────────
+function getImage(img: ImageRelation): string | null {
+  if (!img) return null
+  if (Array.isArray(img)) return img[0]?.ruta_storage ?? null
+  return img.ruta_storage ?? null
 }
 
 export default function ProcessContentForm({
@@ -130,10 +148,13 @@ export default function ProcessContentForm({
       {/* STEPS (solo visual por ahora) */}
       <div className="mt-6 grid gap-3 md:grid-cols-2">
         {Object.entries(localSteps).map(([key, step]) => {
+          // Si acabamos de subir una imagen nueva para este step, usamos el
+          // preview en memoria. Si no, leemos la ya guardada con getImage()
+          // (soporta que `image` venga como objeto o como array).
           const imagePreview =
             step?.uploadedPreview?.id === step?.imagen_id
               ? step?.uploadedPreview?.ruta_storage
-              : step?.image?.[0]?.ruta_storage ?? null
+              : getImage(step?.image)
 
           return (
             <div key={key} className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">

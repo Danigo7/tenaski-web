@@ -17,6 +17,12 @@ export default function UploadContentImage({
     setLoading(true)
 
     try {
+      // Obtenemos el usuario actual para poder rellenar uploaded_by
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError || !userData?.user) {
+        throw new Error('No hay sesión activa. Vuelve a iniciar sesión.')
+      }
+
       const fileName = `${Date.now()}-${file.name}`
 
       const { error: uploadError } = await supabase.storage
@@ -36,6 +42,7 @@ export default function UploadContentImage({
         .insert({
           nombre_archivo: file.name,
           ruta_storage: imageUrl,
+          uploaded_by: userData.user.id,
         })
         .select()
         .single()

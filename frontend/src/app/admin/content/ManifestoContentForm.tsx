@@ -11,6 +11,14 @@ type ImageRow = {
   nombre_archivo: string
 }
 
+// Misma idea que en HeroContentForm: la relación `image` puede venir
+// como objeto o como array según cómo Supabase/PostgREST la resuelva.
+type ImageRelation =
+  | { id: string; ruta_storage: string }
+  | { id: string; ruta_storage: string }[]
+  | null
+  | undefined
+
 type ManifestoBlock = {
   id: string
   seccion: string
@@ -20,12 +28,22 @@ type ManifestoBlock = {
     descripcion?: string
   }
   imagen_id: string | null
-  image: { id: string; ruta_storage: string }[] | null
+  image: ImageRelation
 } | null
 
 type Props = {
   block: ManifestoBlock
   imageLibrary: ImageRow[]
+}
+
+// ─────────────────────────────────────────────
+// HELPER: extrae ruta_storage sea objeto o array
+// (mismo patrón que en page.tsx / HeroContentForm)
+// ─────────────────────────────────────────────
+function getImage(img: ImageRelation): string | null {
+  if (!img) return null
+  if (Array.isArray(img)) return img[0]?.ruta_storage ?? null
+  return img.ruta_storage ?? null
 }
 
 export default function ManifestoContentForm({ block, imageLibrary }: Props) {
@@ -44,7 +62,7 @@ export default function ManifestoContentForm({ block, imageLibrary }: Props) {
   const [isPending, startTransition] = useTransition()
   const [saved, setSaved] = useState(false)
 
-  const currentImage = block?.image?.[0]?.ruta_storage ?? null
+  const currentImage = getImage(block?.image)
 
   const previewImage =
     selectedImageId && uploadedPreview?.id === selectedImageId

@@ -7,6 +7,18 @@ import FeaturedProduct from '@/components/home/FeaturedProduct'
 import CTA from '@/components/home/CTA'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 
+// ─────────────────────────────────────────────
+// HELPER: extrae ruta_storage sea objeto o array
+// (Supabase a veces tipa la relación embebida como
+// array aunque en runtime devuelva un solo objeto)
+// ─────────────────────────────────────────────
+function getImage(block: any): string | null {
+  const img = block?.image
+  if (!img) return null
+  if (Array.isArray(img)) return img[0]?.ruta_storage ?? null
+  return img.ruta_storage ?? null
+}
+
 export default async function Home() {
   const supabase = await createClient()
 
@@ -42,10 +54,10 @@ export default async function Home() {
       'home_process_step_4',
     ])
 
-  const process = processBlocks?.find(p => p.seccion === 'home_process')
+  const process = processBlocks?.find((p) => p.seccion === 'home_process')
 
   const step = (n: number) =>
-    processBlocks?.find(p => p.seccion === `home_process_step_${n}`)
+    processBlocks?.find((p) => p.seccion === `home_process_step_${n}`)
 
   // ─────────────────────────────────────────────
   // PRODUCTO DESTACADO (lo dejas igual)
@@ -81,7 +93,7 @@ export default async function Home() {
     <>
       {/* HERO */}
       <Hero
-        imageUrl={hero?.image?.[0]?.ruta_storage ?? '/img/heroimg.png'}
+        imageUrl={getImage(hero) ?? '/img/heroimg.png'}
         eyebrow={hero?.data?.eyebrow ?? ''}
         title={hero?.data?.titulo ?? ''}
         description={hero?.data?.descripcion ?? ''}
@@ -93,7 +105,7 @@ export default async function Home() {
 
       {/* MANIFESTO */}
       <Manifesto
-        imageUrl={manifesto?.image?.[0]?.ruta_storage ?? '/img/manifestoimg.png'}
+        imageUrl={getImage(manifesto) ?? '/img/manifestoimg.png'}
         eyebrow={manifesto?.data?.eyebrow ?? ''}
         title={manifesto?.data?.titulo ?? ''}
         description={manifesto?.data?.descripcion ?? ''}
@@ -108,25 +120,25 @@ export default async function Home() {
           {
             title: step(1)?.data?.titulo ?? '',
             description: step(1)?.data?.descripcion ?? '',
-            imageUrl: step(1)?.image?.[0]?.ruta_storage ?? '/img/designimg.png',
+            imageUrl: getImage(step(1)) ?? '/img/designimg.png',
             imageAlt: 'Step 1',
           },
           {
             title: step(2)?.data?.titulo ?? '',
             description: step(2)?.data?.descripcion ?? '',
-            imageUrl: step(2)?.image?.[0]?.ruta_storage ?? '/img/woodimg.jpeg',
+            imageUrl: getImage(step(2)) ?? '/img/woodimg.jpeg',
             imageAlt: 'Step 2',
           },
           {
             title: step(3)?.data?.titulo ?? '',
             description: step(3)?.data?.descripcion ?? '',
-            imageUrl: step(3)?.image?.[0]?.ruta_storage ?? '/img/buildimg.jpeg',
+            imageUrl: getImage(step(3)) ?? '/img/buildimg.jpeg',
             imageAlt: 'Step 3',
           },
           {
             title: step(4)?.data?.titulo ?? '',
             description: step(4)?.data?.descripcion ?? '',
-            imageUrl: step(4)?.image?.[0]?.ruta_storage ?? '/img/finishimg.png',
+            imageUrl: getImage(step(4)) ?? '/img/finishimg.png',
             imageAlt: 'Step 4',
           },
         ]}

@@ -494,3 +494,34 @@ INSERT INTO public.content_block (seccion, data) VALUES
     'titulo', 'Hablemos de tu próximo esquí',
     'descripcion', 'Cuéntanos qué buscas y te responderemos personalmente.'
   ));
+
+  -- =========================================================
+-- 005_content_block_values.sql
+-- Fix: permitir INSERT en content_block + seed de historia_values
+-- =========================================================
+
+-- -------------------------
+-- GRANT que faltaba
+-- -------------------------
+grant insert on table public.content_block to authenticated;
+
+-- -------------------------
+-- Policy de RLS que faltaba
+-- -------------------------
+create policy "content_block_insert"
+on public.content_block for insert
+to authenticated
+with check (get_user_role() in ('admin', 'editor'));
+
+-- -------------------------
+-- SEED: historia_values (nunca se insertó en el schema original)
+-- -------------------------
+insert into public.content_block (seccion, data) values
+  ('historia_values', jsonb_build_object(
+    'values', jsonb_build_array(
+      jsonb_build_object('number', '01', 'titulo', 'Artesanía', 'descripcion', 'Cada esquí se construye de forma individual, cuidando cada detalle.'),
+      jsonb_build_object('number', '02', 'titulo', 'Durabilidad', 'descripcion', 'Diseñados para acompañarte durante muchos inviernos.'),
+      jsonb_build_object('number', '03', 'titulo', 'Montaña', 'descripcion', 'Todo nace pensando en el terreno y en la experiencia real.')
+    )
+  ))
+on conflict (seccion) do nothing;

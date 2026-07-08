@@ -5,6 +5,13 @@ import ProductGrid from '@/components/catalog/ProductGrid'
 import CTA from '@/components/home/CTA'
 import ScrollToTop from '@/components/ui/ScrollToTop'
 
+function getImage(block: any): string | null {
+  const img = block?.image
+  if (!img) return null
+  if (Array.isArray(img)) return img[0]?.ruta_storage ?? null
+  return img.ruta_storage ?? null
+}
+
 // ─── Tipos ────────────────────────────────────────────────
 type ProductRow = {
   id: string
@@ -35,6 +42,8 @@ export default async function Catalogo() {
     `)
     .eq('seccion', 'hero_catalogo')
     .single()
+
+  const heroData = heroBlock?.data ?? {}
 
   // Traer productos publicados con su imagen principal
   const { data, error } = await supabase
@@ -80,20 +89,17 @@ export default async function Catalogo() {
     <main className="bg-[#0F0F0F]">
 
       <Hero
-        imageUrl={
-          heroBlock?.image?.[0]?.ruta_storage ??
-          '/img/heroimg.png'
-        }
+        imageUrl={getImage(heroBlock) ?? '/img/heroimg.png'}
         eyebrow={
-          heroBlock?.data?.eyebrow ??
+          heroData.eyebrow ??
           'Colección'
         }
         title={
-          heroBlock?.data?.titulo ??
+          heroData.titulo ??
           'Nuestros esquís.'
         }
         description={
-          heroBlock?.data?.descripcion ??
+          heroData.descripcion ??
           'Cada modelo nace para un terreno, una forma de esquiar y una manera distinta de entender la montaña.'
         }
         buttons={[

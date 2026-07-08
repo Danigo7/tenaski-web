@@ -19,12 +19,21 @@ type ImageRow = {
   nombre_archivo: string
 }
 
+// La relación `image` embebida puede venir como objeto (FK muchos-a-uno,
+// caso normal en Postgres/PostgREST) o como array (según cómo la tipe
+// Supabase). Contemplamos ambos casos con un tipo reutilizable.
+type ImageRelation =
+  | { id: string; ruta_storage: string }
+  | { id: string; ruta_storage: string }[]
+  | null
+  | undefined
+
 type HeroBlock = {
   id: string
   seccion: string
   data: { eyebrow?: string; titulo?: string; descripcion?: string }
   imagen_id: string | null
-  image: { id: string; ruta_storage: string }[] | null
+  image: ImageRelation
 } | null
 
 type Props = {
@@ -32,6 +41,15 @@ type Props = {
   imageLibrary: ImageRow[]
   seccion: string
   titulo: string
+}
+
+// ─────────────────────────────────────────────
+// HELPER: extrae ruta_storage sea objeto o array
+// ─────────────────────────────────────────────
+function getImage(img: ImageRelation): string | null {
+  if (!img) return null
+  if (Array.isArray(img)) return img[0]?.ruta_storage ?? null
+  return img.ruta_storage ?? null
 }
 
 export default function HeroContentForm({
@@ -54,8 +72,8 @@ export default function HeroContentForm({
   const [isPending, startTransition] = useTransition()
   const [savedMessage, setSavedMessage] = useState(false)
 
-  // Imagen actual
-  const currentImage = block?.image?.[0]?.ruta_storage ?? null
+  // Imagen actual (soporta que `image` venga como objeto o como array)
+  const currentImage = getImage(block?.image)
   const previewImage =
     selectedImageId && uploadedPreview?.id === selectedImageId
       ? uploadedPreview.ruta_storage
@@ -135,9 +153,9 @@ export default function HeroContentForm({
           </label>
           {/* Preview */}
           <div className="relative h-48 w-full overflow-hidden rounded-lg border border-zinc-700 bg-zinc-800">
-            {currentImage ? (
+            {previewImage ? (
               <Image
-                src={currentImage}
+                src={previewImage}
                 alt="Hero image"
                 fill
                 className="object-cover"

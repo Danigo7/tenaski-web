@@ -2,6 +2,13 @@ import { createClient } from '@/lib/supabase/server'
 import Hero from '@/components/home/Hero'
 import ContactForm from '@/components/contact/ContactForm'
 
+function getImage(block: any): string | null {
+  const img = block?.image
+  if (!img) return null
+  if (Array.isArray(img)) return img[0]?.ruta_storage ?? null
+  return img.ruta_storage ?? null
+}
+
 
 export default async function ContactoPage() {
   const supabase = await createClient()
@@ -20,10 +27,7 @@ export default async function ContactoPage() {
     <main className="bg-[#0F0F0F]">
 
       <Hero
-        imageUrl={
-          heroBlock?.image?.[0]?.ruta_storage ??
-          '/img/heroimg.png'
-        }
+        imageUrl={getImage(heroBlock) ?? '/img/heroimg.png'}
         eyebrow={
           heroBlock?.data?.eyebrow ??
           'Contacto'

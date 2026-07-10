@@ -12,7 +12,7 @@ type ManifestoProps = {
 
 export default function Manifesto({ eyebrow, title, description, imageUrl }: ManifestoProps) {
   return (
-    <section className="bg-[#0F0F0F] py-10">
+    <section className="home-section py-10">
 
       {/* Grid de 2 columnas en desktop: texto | imagen */}
       <div className="mx-auto grid max-w-6xl items-center gap-20 px-6 lg:grid-cols-2">
@@ -21,7 +21,7 @@ export default function Manifesto({ eyebrow, title, description, imageUrl }: Man
         <div>
 
           {/* Eyebrow en dorado */}
-          <p className="mb-6 text-xs uppercase tracking-[0.35em] text-[#C4A882]">
+          <p className="home-section__eyebrow">
             {eyebrow}
           </p>
 
@@ -46,7 +46,7 @@ export default function Manifesto({ eyebrow, title, description, imageUrl }: Man
               style={{ backgroundImage: `url(${imageUrl})` }}
             />
           ) : (
-            <div className="flex h-full items-center justify-center bg-[#1a1714]">
+            <div className="home-section__image-placeholder flex h-full items-center justify-center">
               <p className="text-xs uppercase tracking-[0.3em] text-[#E8E4DC]/20">
                 Imagen manifiesto
               </p>

@@ -5,6 +5,7 @@ import ProcessContentForm from './ProcessContentForm'
 import StoryContentForm from './StoryContentForm'
 import ValuesContentForm from './ValuesContentForm'
 import WorkshopContentForm from './WorkshopContentForm'
+import SectionGroup from './Sectiongroup'
 
 export default async function ContentPage() {
   const supabase = await createClient()
@@ -42,22 +43,22 @@ export default async function ContentPage() {
     .order('created_at', { ascending: false })
 
   // ─────────────────────────────────────────────
-// MANIFESTO (HOME)
-// ─────────────────────────────────────────────
-const { data: manifesto } = await supabase
-  .from('content_block')
-  .select(`
-    id,
-    seccion,
-    data,
-    imagen_id,
-    image:imagen_id (
+  // MANIFESTO (HOME)
+  // ─────────────────────────────────────────────
+  const { data: manifesto } = await supabase
+    .from('content_block')
+    .select(`
       id,
-      ruta_storage
-    )
-  `)
-  .eq('seccion', 'home_manifesto')
-  .single()
+      seccion,
+      data,
+      imagen_id,
+      image:imagen_id (
+        id,
+        ruta_storage
+      )
+    `)
+    .eq('seccion', 'home_manifesto')
+    .single()
 
   // ─────────────────────────────────────────────
   // PROCESS (HOME)
@@ -90,6 +91,9 @@ const { data: manifesto } = await supabase
       ]) ?? []
   )
 
+  // ─────────────────────────────────────────────
+  // HISTORIA
+  // ─────────────────────────────────────────────
   const { data: historiaBlocks } = await supabase
     .from('content_block')
     .select(`
@@ -119,7 +123,7 @@ const { data: manifesto } = await supabase
     heroBlocks?.find((block) => block.seccion === seccion) ?? null
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-16">
 
       {/* HEADER */}
       <div>
@@ -130,41 +134,17 @@ const { data: manifesto } = await supabase
       </div>
 
       {/* ───────────────────────────── */}
-      {/* HEROES + HISTORIA */}
+      {/* HOME */}
       {/* ───────────────────────────── */}
-      <div className="space-y-6">
+      <SectionGroup
+        title="Home"
+        description="Cabecera, manifiesto y proceso de la página principal."
+        count={3}
+      >
         <HeroContentForm
           titulo="Cabecera · Home"
           seccion="hero_home"
           block={getBlock('hero_home')}
-          imageLibrary={imageLibrary ?? []}
-        />
-
-        <HeroContentForm
-          titulo="Cabecera · Historia"
-          seccion="hero_historia"
-          block={getBlock('hero_historia')}
-          imageLibrary={imageLibrary ?? []}
-        />
-
-        <HeroContentForm
-          titulo="Cabecera · Catálogo"
-          seccion="hero_catalogo"
-          block={getBlock('hero_catalogo')}
-          imageLibrary={imageLibrary ?? []}
-        />
-
-        <HeroContentForm
-          titulo="Cabecera · Galería"
-          seccion="hero_galeria"
-          block={getBlock('hero_galeria')}
-          imageLibrary={imageLibrary ?? []}
-        />
-
-        <HeroContentForm
-          titulo="Cabecera · Contacto"
-          seccion="hero_contacto"
-          block={getBlock('hero_contacto')}
           imageLibrary={imageLibrary ?? []}
         />
 
@@ -176,6 +156,22 @@ const { data: manifesto } = await supabase
         <ProcessContentForm
           block={process}
           steps={steps}
+          imageLibrary={imageLibrary ?? []}
+        />
+      </SectionGroup>
+
+      {/* ───────────────────────────── */}
+      {/* HISTORIA */}
+      {/* ───────────────────────────── */}
+      <SectionGroup
+        title="Historia"
+        description="Cabecera, relato, valores y taller."
+        count={4}
+      >
+        <HeroContentForm
+          titulo="Cabecera · Historia"
+          seccion="hero_historia"
+          block={getBlock('hero_historia')}
           imageLibrary={imageLibrary ?? []}
         />
 
@@ -190,7 +186,55 @@ const { data: manifesto } = await supabase
           block={workshopBlock}
           imageLibrary={imageLibrary ?? []}
         />
-      </div>
+      </SectionGroup>
+
+      {/* ───────────────────────────── */}
+      {/* CATÁLOGO */}
+      {/* ───────────────────────────── */}
+      <SectionGroup
+        title="Catálogo"
+        description="Cabecera de la página de catálogo."
+        count={1}
+      >
+        <HeroContentForm
+          titulo="Cabecera · Catálogo"
+          seccion="hero_catalogo"
+          block={getBlock('hero_catalogo')}
+          imageLibrary={imageLibrary ?? []}
+        />
+      </SectionGroup>
+
+      {/* ───────────────────────────── */}
+      {/* GALERÍA */}
+      {/* ───────────────────────────── */}
+      <SectionGroup
+        title="Galería"
+        description="Cabecera de la página de galería."
+        count={1}
+      >
+        <HeroContentForm
+          titulo="Cabecera · Galería"
+          seccion="hero_galeria"
+          block={getBlock('hero_galeria')}
+          imageLibrary={imageLibrary ?? []}
+        />
+      </SectionGroup>
+
+      {/* ───────────────────────────── */}
+      {/* CONTACTO */}
+      {/* ───────────────────────────── */}
+      <SectionGroup
+        title="Contacto"
+        description="Cabecera de la página de contacto."
+        count={1}
+      >
+        <HeroContentForm
+          titulo="Cabecera · Contacto"
+          seccion="hero_contacto"
+          block={getBlock('hero_contacto')}
+          imageLibrary={imageLibrary ?? []}
+        />
+      </SectionGroup>
 
     </div>
   )

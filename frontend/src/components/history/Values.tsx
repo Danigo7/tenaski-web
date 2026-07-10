@@ -14,7 +14,7 @@ type ValuesProps = {
 
 export default function Values({ values }: ValuesProps) {
   return (
-    <section className="bg-[#0F0F0F] py-20">
+    <section className="home-section py-20">
 
       <div className="mx-auto max-w-6xl px-6">
 
@@ -22,7 +22,7 @@ export default function Values({ values }: ValuesProps) {
 
         <div className="max-w-3xl">
 
-          <p className="mb-6 text-xs uppercase tracking-[0.35em] text-[#C4A882]">
+          <p className="home-section__eyebrow">
             Nuestros valores
           </p>
 
@@ -49,11 +49,11 @@ export default function Values({ values }: ValuesProps) {
               "
             >
 
-              <p className="text-5xl font-light text-[#C4A882]/50">
+              <p className="home-section__step-number text-5xl">
                 {value.number}
               </p>
 
-              <h3 className="mt-8 font-['Cormorant_Garamond'] text-3xl font-light text-[#E8E4DC]">
+              <h3 className="home-section__step-title mt-8">
                 {value.title}
               </h3>
 

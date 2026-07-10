@@ -89,7 +89,7 @@ export default function ManifestoContentForm({ block, imageLibrary }: Props) {
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
       {/* HEADER */}
-      <h2 className="text-xl font-semibold">Manifesto</h2>
+      <h2 className="text-xl font-semibold">Manifesto · Home</h2>
       <p className="mt-1 text-sm text-zinc-400">
         Edita el contenido de la sección manifesto. Aqui editas el texto y la imagen que se muestra en la página de inicio.
       </p>

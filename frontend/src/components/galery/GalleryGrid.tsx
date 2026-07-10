@@ -16,7 +16,7 @@ type GalleryGridProps = {
 
 export default function GalleryGrid({ images }: GalleryGridProps) {
   return (
-    <section className="bg-[#0F0F0F] py-20">
+    <section className="home-section py-20">
       <div className="mx-auto max-w-6xl px-6">
 
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3 auto-rows-[180px]">

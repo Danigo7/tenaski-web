@@ -1,14 +1,118 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0f0f0f;
+  --foreground: #e8e4dc;
+  --surface: #0f0f0f;
+  --surface-soft: #1a1714;
+  --accent: #c4a882;
+  --accent-strong: #e8e4dc;
+  --text-muted: rgba(232, 228, 220, 0.6);
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .home-section {
+    background-color: var(--surface);
+    color: var(--foreground);
+  }
+
+  .home-section__eyebrow {
+    margin-bottom: 1.5rem;
+    font-size: 0.75rem;
+    line-height: 1.4;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .home-section__title {
+    max-width: 42rem;
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 4vw, 3.75rem);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--foreground);
+  }
+
+  .home-section__text {
+    max-width: 32rem;
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-muted);
+  }
+
+  .home-section__button-primary {
+    display: inline-block;
+    background-color: var(--accent);
+    color: var(--surface);
+    padding: 1rem 2.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .home-section__button-primary:hover {
+    background-color: var(--accent-strong);
+  }
+
+  .home-section__button-secondary {
+    display: inline-block;
+    border: 1px solid rgba(232, 228, 220, 0.2);
+    padding: 1rem 2.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(232, 228, 220, 0.7);
+    transition: border-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+  }
+
+  .home-section__button-secondary:hover {
+    border-color: rgba(232, 228, 220, 0.5);
+    color: var(--foreground);
+    transform: translateY(-2px);
+  }
+
+  .home-section__step-number {
+    margin-bottom: 1.5rem;
+    font-size: 3rem;
+    font-weight: 300;
+    line-height: 1;
+    color: rgba(196, 168, 130, 0.5);
+  }
+
+  .home-section__step-title {
+    font-family: var(--font-display);
+    font-size: 1.875rem;
+    font-weight: 300;
+    line-height: 1.1;
+    color: var(--foreground);
+  }
+
+  .home-section__image-placeholder {
+    background-color: var(--surface-soft);
+    color: rgba(232, 228, 220, 0.2);
+  }
+}
+
+@media (min-width: 640px) {
+  .home-section__text {
+    font-size: 1.125rem;
+  }
 }
 
 .img-premium {

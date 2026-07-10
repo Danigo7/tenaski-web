@@ -5,17 +5,5 @@ type SectionTextProps = {
 export default function SectionText({
   children,
 }: SectionTextProps) {
-  return (
-    <p
-      className="
-        max-w-lg
-        text-base
-        leading-relaxed
-        text-[#E8E4DC]/60
-        sm:text-lg
-      "
-    >
-      {children}
-    </p>
-  )
+  return <p className="home-section__text">{children}</p>
 }

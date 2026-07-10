@@ -19,7 +19,7 @@ type ProcessProps = {
 
 export default function Process({ eyebrow, title, description, steps }: ProcessProps) {
   return (
-    <section className="bg-[#0F0F0F] py-20">
+    <section className="home-section py-20">
       <div className="mx-auto max-w-6xl px-6">
 
         {/* ── HEADER ────────────────────────────────────────── */}
@@ -27,12 +27,12 @@ export default function Process({ eyebrow, title, description, steps }: ProcessP
         <div className="max-w-3xl">
 
           {/* Eyebrow en dorado */}
-          <p className="mb-6 text-xs uppercase tracking-[0.35em] text-[#C4A882]">
+          <p className="home-section__eyebrow">
             {eyebrow}
           </p>
 
           {/* Título inline (sin SectionTitle) para respetar el max-w-3xl del contenedor */}
-          <h2 className="font-['Cormorant_Garamond'] text-5xl font-light leading-[1] tracking-[-0.03em] text-[#E8E4DC] md:text-6xl">
+          <h2 className="home-section__title">
             {title}
           </h2>
 
@@ -65,7 +65,7 @@ export default function Process({ eyebrow, title, description, steps }: ProcessP
                       style={{ backgroundImage: `url(${step.imageUrl})` }}
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center bg-[#1a1714]">
+                    <div className="home-section__image-placeholder flex h-full items-center justify-center">
                       <p className="text-xs uppercase tracking-[0.3em] text-[#E8E4DC]/20">Imagen</p>
                     </div>
                   )}
@@ -82,17 +82,17 @@ export default function Process({ eyebrow, title, description, steps }: ProcessP
                 <div className={isEven ? 'lg:order-1' : 'lg:order-2'}>
 
                   {/* Número del paso en dorado apagado */}
-                  <p className="mb-6 text-5xl font-light text-[#C4A882]/50">
+                  <p className="home-section__step-number">
                     0{index + 1}
                   </p>
 
                   {/* Título del paso, más pequeño que el título de sección */}
-                  <h3 className="font-['Cormorant_Garamond'] text-3xl font-light text-[#E8E4DC]">
+                  <h3 className="home-section__step-title">
                     {step.title}
                   </h3>
 
                   {/* Descripción del paso, inline (no usa SectionText para no limitar el ancho) */}
-                  <p className="mt-6 text-base leading-relaxed text-[#E8E4DC]/60">
+                  <p className="mt-6 home-section__text">
                     {step.description}
                   </p>
 

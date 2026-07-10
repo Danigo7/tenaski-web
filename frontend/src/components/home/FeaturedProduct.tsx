@@ -22,12 +22,12 @@ export default function FeaturedProduct({
   buttonHref = '/catalogo',
 }: FeaturedProductProps) {
   return (
-    <section className="bg-[#0F0F0F] py-10">
+    <section className="home-section py-10">
       <div className="mx-auto max-w-6xl px-6">
 
         {/* ── EYEBROW ───────────────────────────────────────── */}
         <div className="max-w-3xl">
-          <p className="mb-6 text-xs uppercase tracking-[0.35em] text-[#C4A882]">
+          <p className="home-section__eyebrow">
             {eyebrow}
           </p>
         </div>
@@ -46,7 +46,7 @@ export default function FeaturedProduct({
                 style={{ backgroundImage: `url(${imageUrl})` }}
               />
             ) : (
-              <div className="flex h-full items-center justify-center bg-[#1a1714]">
+              <div className="home-section__image-placeholder flex h-full items-center justify-center">
                 <p className="text-xs uppercase tracking-[0.3em] text-[#E8E4DC]/20">
                   Imagen producto
                 </p>
@@ -73,10 +73,7 @@ export default function FeaturedProduct({
             </div>
 
             {/* Botón secundario con borde sutil y efecto hover */}
-            <Link
-              href={buttonHref}
-              className="mt-12 inline-block border border-[#E8E4DC]/20 px-10 py-4 text-sm uppercase tracking-[0.15em] text-[#E8E4DC]/70 transition-all duration-300 hover:border-[#E8E4DC]/50 hover:text-[#E8E4DC] hover:translate-y-[-2px]"
-            >
+            <Link href={buttonHref} className="mt-12 home-section__button-secondary">
               {buttonText}
             </Link>
 

@@ -16,7 +16,8 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: "Tena Skis — Esquís artesanales de los Pirineos",
-  description: "Esquís hechos a mano en los Pirineos. Precisión, madera y nieve en su forma más pura.",
+  description:
+    "Esquís hechos a mano en los Pirineos. Precisión, madera y nieve en su forma más pura.",
 };
 
 export default function RootLayout({
@@ -25,10 +26,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${cormorant.variable} ${dmSans.variable}`}>
-      <body className="bg-[#0F0F0F] text-[#E8E4DC] antialiased">
-        {children}
-      </body>
+    <html
+      lang="es"
+      data-scroll-behavior="smooth"
+      className={`${cormorant.variable} ${dmSans.variable}`}
+    >
+      <body>{children}</body>
     </html>
   );
 }

@@ -116,7 +116,7 @@ export default function ProcessContentForm({
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-      <h2 className="text-xl font-semibold">Process</h2>
+      <h2 className="text-xl font-semibold">Process · Home</h2>
       <p className="mt-1 text-sm text-zinc-400">
         Edita el contenido de los pasos de creación de los esquis. Cada paso tiene un título, una descripción y una imagen asociada.
       </p>

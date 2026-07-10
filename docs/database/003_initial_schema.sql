@@ -525,3 +525,13 @@ insert into public.content_block (seccion, data) values
     )
   ))
 on conflict (seccion) do nothing;
+
+-- =========================================================
+-- 006_gallery.sql
+-- Control de galería pública desde el panel de imágenes
+-- =========================================================
+
+alter table public.image
+  add column if not exists en_galeria boolean not null default false,
+  add column if not exists galeria_size text check (galeria_size in ('lg', 'md', 'sm')),
+  add column if not exists galeria_orden int not null default 0;

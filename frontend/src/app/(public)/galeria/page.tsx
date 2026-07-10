@@ -13,6 +13,7 @@ function getImage(block: any): string | null {
 
 export default async function GaleriaPage() {
   const supabase = await createClient()
+
   const { data: heroBlock } = await supabase
     .from('content_block')
     .select(`
@@ -24,63 +25,32 @@ export default async function GaleriaPage() {
     .eq('seccion', 'hero_galeria')
     .single()
 
-  const images: ImageItem[] = [
-    {
-      src: '/img/gallery1.jpeg',
-      alt: 'Logo',
-      size: 'lg',
-    },
-    {
-      src: '/img/gallery2.jpeg',
-      alt: 'Taller artesanal',
-      size: 'md',
-    },
-    {
-      src: '/img/storyimg.jpeg',
-      alt: 'David',
-      size: 'lg',
-    },
-    {
-      src: '/img/heroimg.png',
-      alt: 'Esquí en acción',
-      size: 'md',
-    },
-    {
-      src: '/img/woodimg.jpeg',
-      alt: 'Madera',
-      size: 'sm',
-    },
-  ]
+  const { data: galleryRows } = await supabase
+    .from('image')
+    .select('ruta_storage, texto_alt, galeria_size, galeria_orden')
+    .eq('en_galeria', true)
+    .is('deleted_at', null)
+    .order('galeria_orden', { ascending: true })
+
+  const images: ImageItem[] = (galleryRows ?? []).map((row) => ({
+    src: row.ruta_storage,
+    alt: row.texto_alt ?? '',
+    size: (row.galeria_size ?? 'md') as 'lg' | 'md' | 'sm',
+  }))
 
   return (
     <main className="bg-[#0F0F0F]">
-
       <Hero
         imageUrl={getImage(heroBlock) ?? '/img/heroimg.png'}
-        eyebrow={
-          heroBlock?.data?.eyebrow ??
-          'Galería'
-        }
-        title={
-          heroBlock?.data?.titulo ??
-          'La montaña, tal y como la vivimos.'
-        }
+        eyebrow={heroBlock?.data?.eyebrow ?? 'Galería'}
+        title={heroBlock?.data?.titulo ?? 'La montaña, tal y como la vivimos.'}
         description={
           heroBlock?.data?.descripcion ??
           'Una selección de momentos, texturas y paisajes.'
         }
         buttons={[
-          {
-            text: 'Ver catálogo',
-            href: '/catalogo',
-            variant: 'primary',
-          },
-          {
-            text: 'Volver al inicio',
-            href: '/',
-            variant: 'secondary',
-          },
-        
+          { text: 'Ver catálogo', href: '/catalogo', variant: 'primary' },
+          { text: 'Volver al inicio', href: '/', variant: 'secondary' },
         ]}
       />
 
@@ -95,7 +65,6 @@ export default async function GaleriaPage() {
       />
 
       <ScrollToTop />
-
     </main>
   )
 }

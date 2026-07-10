@@ -18,7 +18,7 @@ export default function ProductGrid({
 }: ProductGridProps) {
   return (
 
-    <section className="bg-[#0F0F0F] py-10">
+    <section className="home-section py-10">
 
       <div className="mx-auto max-w-6xl px-6">
 

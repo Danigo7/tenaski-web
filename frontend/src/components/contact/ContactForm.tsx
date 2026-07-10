@@ -56,7 +56,7 @@ export default function ContactForm() {
     <div className="mx-auto max-w-2xl">
 
       {/* Título de sección */}
-      <h2 className="font-['Cormorant_Garamond'] text-3xl font-semibold text-[#E8E4DC] mb-8">
+      <h2 className="home-section__title mb-8 text-3xl sm:text-4xl">
         Escríbenos
       </h2>
 

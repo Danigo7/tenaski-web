@@ -45,6 +45,24 @@ export default async function Catalogo() {
 
   const heroData = heroBlock?.data ?? {}
 
+  // ─────────────────────────────────────────────
+  // INTRO CATÁLOGO
+  // ─────────────────────────────────────────────
+  const { data: introBlock } = await supabase
+    .from('content_block')
+    .select('data')
+    .eq('seccion', 'catalogo_intro')
+    .single()
+
+  // ─────────────────────────────────────────────
+  // CTA CATÁLOGO
+  // ─────────────────────────────────────────────
+  const { data: ctaCatalogo } = await supabase
+    .from('content_block')
+    .select('data')
+    .eq('seccion', 'cta_catalogo')
+    .single()
+
   // Traer productos publicados con su imagen principal
   const { data, error } = await supabase
     .from('product')
@@ -87,7 +105,6 @@ export default async function Catalogo() {
 
   return (
     <main>
-
       <Hero
         imageUrl={getImage(heroBlock) ?? '/img/heroimg.png'}
         eyebrow={
@@ -109,23 +126,28 @@ export default async function Catalogo() {
       />
 
       <Intro
-        eyebrow="La colección"
-        title="Cada modelo tiene una personalidad propia."
-        description="No fabricamos productos en serie. Cada esquí se diseña pensando en la experiencia que ofrecerá en la montaña."
+        eyebrow={introBlock?.data?.eyebrow ?? 'La colección'}
+        title={introBlock?.data?.titulo ?? 'Cada modelo tiene una personalidad propia.'}
+        description={
+          introBlock?.data?.descripcion ??
+          'No fabricamos productos en serie. Cada esquí se diseña pensando en la experiencia que ofrecerá en la montaña.'
+        }
       />
 
       <ProductGrid products={gridProducts} />
 
       <CTA
-        eyebrow="Encuentra tu modelo"
-        title="Cada montaña merece un esquí diferente."
-        description="Descubre una colección artesanal creada para acompañarte durante muchos inviernos."
-        buttonText="Contactar"
-        buttonHref="/contacto"
+        eyebrow={ctaCatalogo?.data?.eyebrow ?? 'Encuentra tu modelo'}
+        title={ctaCatalogo?.data?.titulo ?? 'Cada montaña merece un esquí diferente.'}
+        description={
+          ctaCatalogo?.data?.descripcion ??
+          'Descubre una colección artesanal creada para acompañarte durante muchos inviernos.'
+        }
+        buttonText={ctaCatalogo?.data?.buttonText ?? 'Contactar'}
+        buttonHref={ctaCatalogo?.data?.buttonHref ?? '/contacto'}
       />
 
       <ScrollToTop />
-
     </main>
   )
 }

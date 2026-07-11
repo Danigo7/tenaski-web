@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { updateContentBlock } from './actions'
 import UploadContentImage from './UploadContentImage'
+import Switch from './Switch'
 
 type ImageRow = {
   id: string
@@ -34,6 +35,7 @@ type ProcessBlock = {
     eyebrow?: string
     titulo?: string
     descripcion?: string
+    activo?: boolean
   }
   image: ImageRelation
 } | null
@@ -58,6 +60,7 @@ export default function ProcessContentForm({
   block,
   steps,
 }: Props) {
+  const [activo, setActivo] = useState(block?.data?.activo ?? true)
   const [eyebrow, setEyebrow] = useState(block?.data?.eyebrow ?? '')
   const [titulo, setTitulo] = useState(block?.data?.titulo ?? '')
   const [descripcion, setDescripcion] = useState(block?.data?.descripcion ?? '')
@@ -93,6 +96,7 @@ export default function ProcessContentForm({
         updateContentBlock(
           'home_process',
           {
+            activo,
             eyebrow,
             titulo,
             descripcion,
@@ -116,10 +120,16 @@ export default function ProcessContentForm({
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-      <h2 className="text-xl font-semibold">Process · Home</h2>
-      <p className="mt-1 text-sm text-zinc-400">
-        Edita el contenido de los pasos de creación de los esquis. Cada paso tiene un título, una descripción y una imagen asociada.
-      </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold">Process · Home</h2>
+          <p className="mt-1 text-sm text-zinc-400">
+            Edita el contenido de los pasos de creación de los esquis. Cada paso tiene un título, una descripción y una imagen asociada.
+          </p>
+        </div>
+
+        <Switch checked={activo} onChange={setActivo} />
+      </div>
 
       <div className="mt-6 space-y-4">
         <input

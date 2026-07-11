@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Hero from '@/components/home/Hero'
 import Manifesto from '@/components/home/Manifesto'
 import Process from '@/components/home/Process'
+import Acabados from '@/components/home/Acabados'
 import FeaturedProduct from '@/components/home/FeaturedProduct'
 import CTA from '@/components/home/CTA'
 import ScrollToTop from '@/components/ui/ScrollToTop'
@@ -60,6 +61,36 @@ export default async function Home() {
     processBlocks?.find((p) => p.seccion === `home_process_step_${n}`)
 
   // ─────────────────────────────────────────────
+  // ACABADOS
+  // ─────────────────────────────────────────────
+  const { data: acabadosBlock } = await supabase
+    .from('content_block')
+    .select('data')
+    .eq('seccion', 'acabados_home')
+    .single()
+
+  const { data: acabadosRows } = await supabase
+    .from('acabado')
+    .select('id, nombre, descripcion, image:imagen_id (ruta_storage)')
+    .order('orden', { ascending: true })
+
+  const acabados = (acabadosRows ?? []).map((a) => ({
+    id: a.id,
+    nombre: a.nombre,
+    descripcion: a.descripcion,
+    imageUrl: getImage(a) ?? null,
+  }))
+
+  // ─────────────────────────────────────────────
+  // CTA HOME
+  // ─────────────────────────────────────────────
+  const { data: ctaHome } = await supabase
+    .from('content_block')
+    .select('data')
+    .eq('seccion', 'cta_home')
+    .single()
+
+  // ─────────────────────────────────────────────
   // PRODUCTO DESTACADO (lo dejas igual)
   // ─────────────────────────────────────────────
   const { data: featured } = await supabase
@@ -112,37 +143,51 @@ export default async function Home() {
       />
 
       {/* PROCESS */}
-      <Process
-        eyebrow={process?.data?.eyebrow ?? ''}
-        title={process?.data?.titulo ?? ''}
-        description={process?.data?.descripcion ?? ''}
-        steps={[
-          {
-            title: step(1)?.data?.titulo ?? '',
-            description: step(1)?.data?.descripcion ?? '',
-            imageUrl: getImage(step(1)) ?? '/img/designimg.png',
-            imageAlt: 'Step 1',
-          },
-          {
-            title: step(2)?.data?.titulo ?? '',
-            description: step(2)?.data?.descripcion ?? '',
-            imageUrl: getImage(step(2)) ?? '/img/woodimg.jpeg',
-            imageAlt: 'Step 2',
-          },
-          {
-            title: step(3)?.data?.titulo ?? '',
-            description: step(3)?.data?.descripcion ?? '',
-            imageUrl: getImage(step(3)) ?? '/img/buildimg.jpeg',
-            imageAlt: 'Step 3',
-          },
-          {
-            title: step(4)?.data?.titulo ?? '',
-            description: step(4)?.data?.descripcion ?? '',
-            imageUrl: getImage(step(4)) ?? '/img/finishimg.png',
-            imageAlt: 'Step 4',
-          },
-        ]}
-      />
+      {(process?.data?.activo ?? true) && (
+        <Process
+          eyebrow={process?.data?.eyebrow ?? ''}
+          title={process?.data?.titulo ?? ''}
+          description={process?.data?.descripcion ?? ''}
+          steps={[
+            {
+              title: step(1)?.data?.titulo ?? '',
+              description: step(1)?.data?.descripcion ?? '',
+              imageUrl: getImage(step(1)) ?? '/img/designimg.png',
+              imageAlt: 'Step 1',
+            },
+            {
+              title: step(2)?.data?.titulo ?? '',
+              description: step(2)?.data?.descripcion ?? '',
+              imageUrl: getImage(step(2)) ?? '/img/woodimg.jpeg',
+              imageAlt: 'Step 2',
+            },
+            {
+              title: step(3)?.data?.titulo ?? '',
+              description: step(3)?.data?.descripcion ?? '',
+              imageUrl: getImage(step(3)) ?? '/img/buildimg.jpeg',
+              imageAlt: 'Step 3',
+            },
+            {
+              title: step(4)?.data?.titulo ?? '',
+              description: step(4)?.data?.descripcion ?? '',
+              imageUrl: getImage(step(4)) ?? '/img/finishimg.png',
+              imageAlt: 'Step 4',
+            },
+          ]}
+        />
+      )}
+
+      {/* ACABADOS */}
+      {(acabadosBlock?.data?.activo ?? true) && (
+        <Acabados
+          eyebrow={acabadosBlock?.data?.eyebrow ?? 'Acabados'}
+          description={
+            acabadosBlock?.data?.descripcion ??
+            'Cada esquí puede personalizarse con distintos acabados de madera.'
+          }
+          acabados={acabados}
+        />
+      )}
 
       {/* FEATURED PRODUCT */}
       {featured ? (
@@ -158,11 +203,14 @@ export default async function Home() {
 
       {/* CTA */}
       <CTA
-        eyebrow="Empieza el viaje"
-        title="Cada esquí empieza como un trozo de madera."
-        description="Descubre una colección creada para durar, evolucionar y acompañarte durante muchos inviernos."
-        buttonText="Explorar catálogo"
-        buttonHref="/catalogo"
+        eyebrow={ctaHome?.data?.eyebrow ?? 'Empieza el viaje'}
+        title={ctaHome?.data?.titulo ?? 'Cada esquí empieza como un trozo de madera.'}
+        description={
+          ctaHome?.data?.descripcion ??
+          'Descubre una colección creada para durar, evolucionar y acompañarte durante muchos inviernos.'
+        }
+        buttonText={ctaHome?.data?.buttonText ?? 'Explorar catálogo'}
+        buttonHref={ctaHome?.data?.buttonHref ?? '/catalogo'}
       />
 
       <ScrollToTop />

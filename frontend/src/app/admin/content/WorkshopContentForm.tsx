@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { updateContentBlock } from './actions'
 import UploadContentImage from './UploadContentImage'
+import Switch from './Switch'
 
 type ImageRow = {
   id: string
@@ -19,6 +20,7 @@ type WorkshopBlock = {
     titulo?: string
     descripcion?: string
     detalles?: string[]
+    activo?: boolean
   }
   imagen_id: string | null
   image: { id: string; ruta_storage: string }[] | null
@@ -37,6 +39,7 @@ function getImage(img: any): string | null {
 }
 
 export default function WorkshopContentForm({ block, imageLibrary }: Props) {
+  const [activo, setActivo] = useState(block?.data?.activo ?? true)
   const [eyebrow, setEyebrow] = useState(block?.data?.eyebrow ?? '')
   const [titulo, setTitulo] = useState(block?.data?.titulo ?? '')
   const [descripcion, setDescripcion] = useState(block?.data?.descripcion ?? '')
@@ -81,6 +84,7 @@ export default function WorkshopContentForm({ block, imageLibrary }: Props) {
       await updateContentBlock(
         'historia_workshop',
         {
+          activo,
           eyebrow,
           titulo,
           descripcion,
@@ -96,10 +100,16 @@ export default function WorkshopContentForm({ block, imageLibrary }: Props) {
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-      <h2 className="text-xl font-semibold">Historia · Workshop</h2>
-      <p className="mt-1 text-sm text-zinc-400">
-        Edita el contenido de la sección Workshop de la página Historia.
-      </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold">Historia · Workshop</h2>
+          <p className="mt-1 text-sm text-zinc-400">
+            Edita el contenido de la sección Workshop de la página Historia.
+          </p>
+        </div>
+
+        <Switch checked={activo} onChange={setActivo} />
+      </div>
 
       <div className="mt-6 grid gap-8 md:grid-cols-2">
         <div className="space-y-5">

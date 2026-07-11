@@ -6,7 +6,7 @@ export default function SectionGroup({
   title,
   description,
   count,
-  defaultOpen = true,
+  defaultOpen = false,
   children,
 }: {
   title: string
@@ -18,11 +18,11 @@ export default function SectionGroup({
   const [open, setOpen] = useState(defaultOpen)
 
   return (
-    <section className="space-y-6">
+    <section className="rounded-2xl border border-zinc-800">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between border-b border-zinc-800 pb-3 text-left"
+        className="flex w-full items-center justify-between px-6 py-5 text-left"
       >
         <div>
           <div className="flex items-center gap-3">
@@ -36,7 +36,7 @@ export default function SectionGroup({
             )}
           </div>
           {description && (
-            <p className="mt-1 text-sm text-zinc-500">{description}</p>
+            <p className="mt-1.5 text-sm text-zinc-500">{description}</p>
           )}
         </div>
 
@@ -56,7 +56,11 @@ export default function SectionGroup({
         </svg>
       </button>
 
-      {open && <div className="space-y-6">{children}</div>}
+      {open && (
+        <div className="space-y-8 border-t border-zinc-800 px-6 py-8">
+          {children}
+        </div>
+      )}
     </section>
   )
 }

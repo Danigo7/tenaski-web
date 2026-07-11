@@ -47,6 +47,10 @@ export default async function AdminLayout({
               <img src="/img/logoo.png" alt="Tenaski" className="h-4 w-4 object-contain" />
               Ver Web
             </Link>
+
+            <div className="mt-2 border-t border-zinc-800 pt-2">
+              <LogoutButton />
+            </div>
           </div>
         </details>
 

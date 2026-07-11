@@ -23,9 +23,6 @@ export async function updateContentBlock(
 ) {
   const supabase = await createClient()
 
-  // Construimos el objeto a actualizar.
-  // Solo incluimos imagen_id si se pasó uno, para no borrar la imagen
-  // existente cuando el formulario no toca ese campo.
   const updatePayload: Record<string, any> = {
     data,
     updated_at: new Date().toISOString(),
@@ -65,14 +62,82 @@ export async function updateContentBlock(
     }
   }
 
-  // revalidatePath le dice a Next.js: "estas páginas tienen datos viejos,
-  // la próxima vez que alguien las visite, vuelve a pedirlos a Supabase".
-  // Sin esto, aunque cambies el contenido en la DB, la web seguiría
-  // mostrando la versión cacheada antigua.
   revalidatePath('/admin/content')
-  revalidatePath('/') // Home
+  revalidatePath('/')
   revalidatePath('/historia')
   revalidatePath('/catalogo')
   revalidatePath('/galeria')
   revalidatePath('/contacto')
+}
+
+/**
+ * Crea un nuevo acabado (imagen + nombre + descripción breve).
+ */
+export async function createAcabado(
+  nombre: string,
+  descripcion: string,
+  imagenId: string,
+  orden: number
+) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('acabado').insert({
+    nombre,
+    descripcion,
+    imagen_id: imagenId,
+    orden,
+  })
+
+  if (error) {
+    console.error('Error creando acabado:', error)
+    throw new Error(error.message)
+  }
+
+  revalidatePath('/admin/content')
+  revalidatePath('/')
+}
+
+/**
+ * Actualiza el nombre y la descripción de un acabado existente.
+ */
+export async function updateAcabado(
+  id: string,
+  nombre: string,
+  descripcion: string
+) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('acabado')
+    .update({
+      nombre,
+      descripcion,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error actualizando acabado:', error)
+    throw new Error(error.message)
+  }
+
+  revalidatePath('/admin/content')
+  revalidatePath('/')
+}
+
+/**
+ * Elimina un acabado.
+ */
+export async function deleteAcabado(id: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.from('acabado').delete().eq('id', id)
+
+  if (error) {
+    console.error('Error eliminando acabado:', error)
+    throw new Error(error.message)
+  }
+
+  revalidatePath('/admin/content')
+  revalidatePath('/')
 }

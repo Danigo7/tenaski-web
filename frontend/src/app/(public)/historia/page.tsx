@@ -48,7 +48,14 @@ export default async function Historia() {
   const workshopBlock =
     historiaBlocks?.find((block) => block.seccion === 'historia_workshop') ?? null
 
-  const heroData = heroBlock?.data ?? {}
+  // ─────────────────────────────────────────────
+  // CTA HISTORIA
+  // ─────────────────────────────────────────────
+  const { data: ctaHistoria } = await supabase
+    .from('content_block')
+    .select('data')
+    .eq('seccion', 'cta_historia')
+    .single()
 
   type HistoryValue = {
     number?: string
@@ -89,6 +96,7 @@ export default async function Historia() {
 
   return (
     <>
+      {/* HERO */}
       <Hero
         imageUrl={getImage(heroBlock) ?? '/img/heroimg.png'}
         eyebrow={
@@ -109,6 +117,7 @@ export default async function Historia() {
         ]}
       />
 
+      {/* STORY */}
       <Story
         eyebrow={storyBlock?.data?.eyebrow ?? 'El origen'}
         title={
@@ -122,40 +131,49 @@ export default async function Historia() {
         imageUrl={getImage(storyBlock) ?? '/img/storyimg.jpeg'}
       />
 
-      <Values
-        values={historyValues}
-      />
+      {/* VALUES */}
+      {(valuesBlock?.data?.activo ?? true) && (
+        <Values
+          values={historyValues}
+        />
+      )}
 
-      <Workshop
-        eyebrow={workshopBlock?.data?.eyebrow ?? 'El taller'}
-        title={
-          workshopBlock?.data?.titulo ??
-          'Donde la madera se convierte en montaña.'
-        }
-        description={
-          workshopBlock?.data?.descripcion ??
-          'No trabajamos en una fábrica. Trabajamos en un espacio donde cada herramienta, cada material y cada decisión forman parte del resultado final.'
-        }
-        imageUrl={getImage(workshopBlock) ?? '/img/workshoppimg.png'}
-        details={
-          workshopBlock?.data?.detalles ?? [
-            'Maderas seleccionadas',
-            'Herramientas tradicionales',
-            'Acabados manuales',
-          ]
-        }
-      />
+      {/* WORKSHOP */}
+      {(workshopBlock?.data?.activo ?? true) && (
+        <Workshop
+          eyebrow={workshopBlock?.data?.eyebrow ?? 'El taller'}
+          title={
+            workshopBlock?.data?.titulo ??
+            'Donde la madera se convierte en montaña.'
+          }
+          description={
+            workshopBlock?.data?.descripcion ??
+            'No trabajamos en una fábrica. Trabajamos en un espacio donde cada herramienta, cada material y cada decisión forman parte del resultado final.'
+          }
+          imageUrl={getImage(workshopBlock) ?? '/img/workshoppimg.png'}
+          details={
+            workshopBlock?.data?.detalles ?? [
+              'Maderas seleccionadas',
+              'Herramientas tradicionales',
+              'Acabados manuales',
+            ]
+          }
+        />
+      )}
 
+      {/* CTA */}
       <CTA
-        eyebrow="Continúa el viaje"
-        title="Cada esquí empieza como una idea."
-        description="Descubre una colección creada para durar muchos inviernos."
-        buttonText="Explorar catálogo"
-        buttonHref="/catalogo"
+        eyebrow={ctaHistoria?.data?.eyebrow ?? 'Continúa el viaje'}
+        title={ctaHistoria?.data?.titulo ?? 'Cada esquí empieza como una idea.'}
+        description={
+          ctaHistoria?.data?.descripcion ??
+          'Descubre una colección creada para durar muchos inviernos.'
+        }
+        buttonText={ctaHistoria?.data?.buttonText ?? 'Explorar catálogo'}
+        buttonHref={ctaHistoria?.data?.buttonHref ?? '/catalogo'}
       />
 
       <ScrollToTop />
-
     </>
   )
 }

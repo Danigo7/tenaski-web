@@ -5,6 +5,9 @@ import ProcessContentForm from './ProcessContentForm'
 import StoryContentForm from './StoryContentForm'
 import ValuesContentForm from './ValuesContentForm'
 import WorkshopContentForm from './WorkshopContentForm'
+import CTAContentForm from './CTAContentForm'
+import IntroContentForm from './IntroContentForm'
+import AcabadosContentForm from './AcabadosContentForm'
 import SectionGroup from './Sectiongroup'
 
 export default async function ContentPage() {
@@ -92,6 +95,29 @@ export default async function ContentPage() {
   )
 
   // ─────────────────────────────────────────────
+  // ACABADOS (HOME)
+  // ─────────────────────────────────────────────
+  const { data: acabadosBlock } = await supabase
+    .from('content_block')
+    .select('id, seccion, data')
+    .eq('seccion', 'acabados_home')
+    .single()
+
+  const { data: acabadosRows } = await supabase
+    .from('acabado')
+    .select(`
+      id,
+      nombre,
+      descripcion,
+      imagen_id,
+      image:imagen_id (
+        id,
+        ruta_storage
+      )
+    `)
+    .order('orden', { ascending: true })
+
+  // ─────────────────────────────────────────────
   // HISTORIA
   // ─────────────────────────────────────────────
   const { data: historiaBlocks } = await supabase
@@ -119,12 +145,31 @@ export default async function ContentPage() {
   const workshopBlock =
     historiaBlocks?.find((block) => block.seccion === 'historia_workshop') ?? null
 
+  // ─────────────────────────────────────────────
+  // CTAs (todas las páginas)
+  // ─────────────────────────────────────────────
+  const { data: ctaBlocks } = await supabase
+    .from('content_block')
+    .select('id, seccion, data')
+    .in('seccion', ['cta_home', 'cta_historia', 'cta_catalogo', 'cta_galeria'])
+
+  const getCTABlock = (seccion: string) =>
+    ctaBlocks?.find((block) => block.seccion === seccion) ?? null
+
+  // ─────────────────────────────────────────────
+  // INTRO CATÁLOGO
+  // ─────────────────────────────────────────────
+  const { data: introCatalogo } = await supabase
+    .from('content_block')
+    .select('id, seccion, data')
+    .eq('seccion', 'catalogo_intro')
+    .single()
+
   const getBlock = (seccion: string) =>
     heroBlocks?.find((block) => block.seccion === seccion) ?? null
 
   return (
-    <div className="space-y-16">
-
+    <div className="space-y-12">
       {/* HEADER */}
       <div>
         <h1 className="text-4xl font-semibold">Contenido</h1>
@@ -138,8 +183,8 @@ export default async function ContentPage() {
       {/* ───────────────────────────── */}
       <SectionGroup
         title="Home"
-        description="Cabecera, manifiesto y proceso de la página principal."
-        count={3}
+        description="Cabecera, manifiesto, proceso, Acabados y CTA de la página principal."
+        count={5}
       >
         <HeroContentForm
           titulo="Cabecera · Home"
@@ -158,6 +203,26 @@ export default async function ContentPage() {
           steps={steps}
           imageLibrary={imageLibrary ?? []}
         />
+
+        <AcabadosContentForm
+          block={acabadosBlock ?? null}
+          acabados={acabadosRows ?? []}
+        />
+
+        <CTAContentForm
+          titulo="CTA · Home"
+          seccion="cta_home"
+          block={getCTABlock('cta_home')}
+          defaults={{
+            eyebrow: 'Empieza el viaje',
+            titulo: 'Cada esquí empieza como un trozo de madera.',
+            descripcion:
+              'Descubre una colección creada para durar, evolucionar y acompañarte durante muchos inviernos.',
+            buttonText: 'Explorar catálogo',
+            buttonHref: '/catalogo',
+          }}
+        />
+         
       </SectionGroup>
 
       {/* ───────────────────────────── */}
@@ -165,8 +230,8 @@ export default async function ContentPage() {
       {/* ───────────────────────────── */}
       <SectionGroup
         title="Historia"
-        description="Cabecera, relato, valores y taller."
-        count={4}
+        description="Cabecera, relato, valores, taller y CTA."
+        count={5}
       >
         <HeroContentForm
           titulo="Cabecera · Historia"
@@ -186,6 +251,19 @@ export default async function ContentPage() {
           block={workshopBlock}
           imageLibrary={imageLibrary ?? []}
         />
+
+        <CTAContentForm
+          titulo="CTA · Historia"
+          seccion="cta_historia"
+          block={getCTABlock('cta_historia')}
+          defaults={{
+            eyebrow: 'Continúa el viaje',
+            titulo: 'Cada esquí empieza como una idea.',
+            descripcion: 'Descubre una colección creada para durar muchos inviernos.',
+            buttonText: 'Explorar catálogo',
+            buttonHref: '/catalogo',
+          }}
+        />
       </SectionGroup>
 
       {/* ───────────────────────────── */}
@@ -193,14 +271,40 @@ export default async function ContentPage() {
       {/* ───────────────────────────── */}
       <SectionGroup
         title="Catálogo"
-        description="Cabecera de la página de catálogo."
-        count={1}
+        description="Cabecera, introducción y CTA de la página de catálogo."
+        count={3}
       >
         <HeroContentForm
           titulo="Cabecera · Catálogo"
           seccion="hero_catalogo"
           block={getBlock('hero_catalogo')}
           imageLibrary={imageLibrary ?? []}
+        />
+
+        <IntroContentForm
+          titulo="Introducción · Catálogo"
+          seccion="catalogo_intro"
+          block={introCatalogo ?? null}
+          defaults={{
+            eyebrow: 'La colección',
+            titulo: 'Cada modelo tiene una personalidad propia.',
+            descripcion:
+              'No fabricamos productos en serie. Cada esquí se diseña pensando en la experiencia que ofrecerá en la montaña.',
+          }}
+        />
+
+        <CTAContentForm
+          titulo="CTA · Catálogo"
+          seccion="cta_catalogo"
+          block={getCTABlock('cta_catalogo')}
+          defaults={{
+            eyebrow: 'Encuentra tu modelo',
+            titulo: 'Cada montaña merece un esquí diferente.',
+            descripcion:
+              'Descubre una colección artesanal creada para acompañarte durante muchos inviernos.',
+            buttonText: 'Contactar',
+            buttonHref: '/contacto',
+          }}
         />
       </SectionGroup>
 
@@ -209,14 +313,27 @@ export default async function ContentPage() {
       {/* ───────────────────────────── */}
       <SectionGroup
         title="Galería"
-        description="Cabecera de la página de galería."
-        count={1}
+        description="Cabecera y CTA de la página de galería."
+        count={2}
       >
         <HeroContentForm
           titulo="Cabecera · Galería"
           seccion="hero_galeria"
           block={getBlock('hero_galeria')}
           imageLibrary={imageLibrary ?? []}
+        />
+
+        <CTAContentForm
+          titulo="CTA · Galería"
+          seccion="cta_galeria"
+          block={getCTABlock('cta_galeria')}
+          defaults={{
+            eyebrow: 'Inspiración',
+            titulo: 'Cada imagen cuenta una historia.',
+            descripcion: 'Descubre el catálogo completo o contáctanos.',
+            buttonText: 'Ver catálogo',
+            buttonHref: '/catalogo',
+          }}
         />
       </SectionGroup>
 
@@ -235,7 +352,6 @@ export default async function ContentPage() {
           imageLibrary={imageLibrary ?? []}
         />
       </SectionGroup>
-
     </div>
   )
 }

@@ -38,6 +38,15 @@ export default async function GaleriaPage() {
     size: (row.galeria_size ?? 'md') as 'lg' | 'md' | 'sm',
   }))
 
+  // ─────────────────────────────────────────────
+  // CTA GALERÍA
+  // ─────────────────────────────────────────────
+  const { data: ctaGaleria } = await supabase
+    .from('content_block')
+    .select('data')
+    .eq('seccion', 'cta_galeria')
+    .single()
+
   return (
     <main>
       <Hero
@@ -57,11 +66,14 @@ export default async function GaleriaPage() {
       <GalleryGrid images={images} />
 
       <CTA
-        eyebrow="Inspiración"
-        title="Cada imagen cuenta una historia."
-        description="Descubre el catálogo completo o contáctanos."
-        buttonText="Ver catálogo"
-        buttonHref="/catalogo"
+        eyebrow={ctaGaleria?.data?.eyebrow ?? 'Inspiración'}
+        title={ctaGaleria?.data?.titulo ?? 'Cada imagen cuenta una historia.'}
+        description={
+          ctaGaleria?.data?.descripcion ??
+          'Descubre el catálogo completo o contáctanos.'
+        }
+        buttonText={ctaGaleria?.data?.buttonText ?? 'Ver catálogo'}
+        buttonHref={ctaGaleria?.data?.buttonHref ?? '/catalogo'}
       />
 
       <ScrollToTop />

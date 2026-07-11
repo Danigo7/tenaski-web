@@ -535,3 +535,65 @@ alter table public.image
   add column if not exists en_galeria boolean not null default false,
   add column if not exists galeria_size text check (galeria_size in ('lg', 'md', 'sm')),
   add column if not exists galeria_orden int not null default 0;
+
+  -- =========================================================
+-- 007_acabados.sql
+-- Sección "Acabados" de la Home: bloque de contenido + tabla de acabados
+-- =========================================================
+
+-- -------------------------
+-- TABLA
+-- -------------------------
+create table public.acabado (
+  id          uuid primary key default gen_random_uuid(),
+  nombre      text not null,
+  descripcion text,
+  imagen_id   uuid references public.image(id) on delete set null,
+  orden       int not null default 0,
+  created_by  uuid references public.profile(id) on delete set null,
+  created_at  timestamptz default now(),
+  updated_at  timestamptz default now()
+);
+
+-- -------------------------
+-- RLS
+-- -------------------------
+alter table public.acabado enable row level security;
+
+-- Lectura pública: alimenta la Home
+create policy "acabado_select"
+on public.acabado for select
+using (true);
+
+create policy "acabado_insert"
+on public.acabado for insert
+to authenticated
+with check (get_user_role() in ('admin', 'editor'));
+
+create policy "acabado_update"
+on public.acabado for update
+to authenticated
+using (get_user_role() in ('admin', 'editor'))
+with check (get_user_role() in ('admin', 'editor'));
+
+create policy "acabado_delete"
+on public.acabado for delete
+to authenticated
+using (get_user_role() in ('admin', 'editor'));
+
+-- -------------------------
+-- GRANTS
+-- -------------------------
+grant select on table public.acabado to anon, authenticated;
+grant insert, update, delete on table public.acabado to authenticated;
+
+-- -------------------------
+-- SEED: bloque de contenido de la sección (para que salga por defecto)
+-- -------------------------
+insert into public.content_block (seccion, data) values
+  ('acabados_home', jsonb_build_object(
+    'activo', true,
+    'eyebrow', 'Acabados',
+    'descripcion', 'Cada esquí puede personalizarse con distintos acabados de madera.'
+  ))
+on conflict (seccion) do nothing;

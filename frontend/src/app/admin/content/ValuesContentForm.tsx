@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import { updateContentBlock } from './actions'
+import Switch from './Switch'
 
 type ValueItem = {
   id: string
@@ -23,6 +24,7 @@ type ValuesBlock = {
   seccion: string
   data: {
     values?: RawValueItem[]
+    activo?: boolean
   }
 } | null
 
@@ -54,6 +56,7 @@ export default function ValuesContentForm({ block }: Props) {
     }))
   }, [block?.data?.values])
 
+  const [activo, setActivo] = useState(block?.data?.activo ?? true)
   const [values, setValues] = useState<ValueItem[]>(initialValues)
   const [isPending, startTransition] = useTransition()
   const [saved, setSaved] = useState(false)
@@ -90,6 +93,7 @@ export default function ValuesContentForm({ block }: Props) {
       await updateContentBlock(
         'historia_values',
         {
+          activo,
           values: values.map(({ number, titulo, descripcion }) => ({
             number,
             titulo,
@@ -105,10 +109,16 @@ export default function ValuesContentForm({ block }: Props) {
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-      <h2 className="text-xl font-semibold">Historia · Values</h2>
-      <p className="mt-1 text-sm text-zinc-400">
-        Edita la lista de valores que aparece en la página Historia.
-      </p>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold">Historia · Values</h2>
+          <p className="mt-1 text-sm text-zinc-400">
+            Edita la lista de valores que aparece en la página Historia.
+          </p>
+        </div>
+
+        <Switch checked={activo} onChange={setActivo} />
+      </div>
 
       <div className="mt-6 space-y-6">
         {values.map((value, index) => (

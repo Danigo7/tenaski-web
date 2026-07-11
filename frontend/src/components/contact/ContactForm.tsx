@@ -105,7 +105,7 @@ export default function ContactForm() {
 
         {/* Mensaje */}
         <div className="space-y-2">
-          <label className="block text-sm text-[#C4A882]">
+          <label className="block text-sm text-[var(--accent)]">
             Mensaje *
           </label>
           <textarea

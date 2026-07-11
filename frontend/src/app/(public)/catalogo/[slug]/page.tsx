@@ -82,12 +82,12 @@ export default async function ProductoPage({ params }: Props) {
 
   return (
     // pt-[80px] para compensar el Navbar global fijo que ya existe
-    <main className="min-h-screen bg-[#0F0F0F] text-white pt-[80px] lg:pt-0">
+    <main className="min-h-screen text-[var(--foreground)] pt-[80px] lg:pt-0">
 
       <div className="lg:min-h-screen lg:grid lg:grid-cols-2">
 
         {/* COLUMNA IZQUIERDA — Galería sticky en desktop */}
-        <div className="h-[60vw] lg:h-auto lg:sticky lg:top-0 lg:h-screen bg-[#141414] overflow-hidden">
+        <div className="h-[60vw] lg:h-auto lg:sticky lg:top-0 lg:h-screen bg-[var(--surface)] overflow-hidden">
           <ProductGallery images={images} nombre={data.nombre} />
         </div>
 
@@ -96,20 +96,17 @@ export default async function ProductoPage({ params }: Props) {
           <div className="max-w-md">
 
             {/* Eyebrow */}
-            <p className="text-xs tracking-[0.25em] uppercase text-[#C4A882] mb-6">
+            <p className="text-xs tracking-[0.25em] uppercase text-[var(--accent)] mb-6">
               Tena Skis · Artesanal
             </p>
 
             {/* Nombre */}
-            <h1
-              className="text-5xl lg:text-6xl font-light leading-[1.05] mb-6 text-[#E8E4DC]"
-              style={{ fontFamily: 'Cormorant Garamond, serif' }}
-            >
+            <h1 className="... text-[var(--foreground)]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
               {data.nombre}
             </h1>
 
             {/* Precio */}
-            <p className="text-2xl font-light text-white/50 mb-8">
+            <p className="text-2xl font-light text-[var(--foreground)]/50 mb-8">
               {data.precio.toLocaleString('es-ES', {
                 style: 'currency',
                 currency: 'EUR',
@@ -117,18 +114,18 @@ export default async function ProductoPage({ params }: Props) {
             </p>
 
             {/* Separador */}
-            <div className="w-12 h-px bg-[#C4A882] mb-8" />
+            <div className="w-12 h-px bg-[var(--accent)] mb-8" />
 
             {/* Descripción corta */}
             {data.descripcion_corta && (
-              <p className="text-base text-[#E8E4DC]/70 leading-relaxed mb-8 font-light">
+              <p className="text-base text-[var(--foreground)]/70 leading-relaxed mb-8 font-light">
                 {data.descripcion_corta}
               </p>
             )}
 
             {/* Descripción larga */}
             {data.descripcion_larga && (
-              <p className="text-sm text-white/35 whitespace-pre-line leading-loose mb-12">
+              <p className="text-sm text-[var(--text-soft)] whitespace-pre-line leading-loose mb-12">
                 {data.descripcion_larga}
               </p>
             )}
@@ -138,9 +135,9 @@ export default async function ProductoPage({ params }: Props) {
               href="/contacto"
               className="
                 inline-flex items-center justify-center gap-3
-                bg-[#C4A882] text-[#0F0F0F]
+                bg-[var(--accent)] text-[var(--background)]
                 px-8 py-4 text-sm font-medium tracking-[0.15em] uppercase
-                hover:bg-[#d4b892] transition-colors
+                hover:bg-[var(--accent-hover)] transition-colors
                 w-full lg:w-auto
               "
             >
@@ -149,10 +146,10 @@ export default async function ProductoPage({ params }: Props) {
             </Link>
 
             {/* Footer de columna */}
-            <div className="mt-16 pt-8 border-t border-white/8 flex items-center justify-between text-xs text-white/20">
+            <div className="mt-16 pt-8 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--text-disabled)]">
               <span className="tracking-widest uppercase">Hecho en el Pirineo</span>
-              <Link href="/catalogo" className="hover:text-white/40 transition-colors">
-                ← Volver al catálogo
+              <Link href="/catalogo" className="hover:text-[var(--foreground)]/40 transition-colors">
+                  ← Volver al catálogo
               </Link>
             </div>
 

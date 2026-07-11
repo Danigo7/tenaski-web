@@ -15,11 +15,11 @@ export default function Intro({
   description,
 }: IntroProps) {
   return (
-    <section className="bg-[#0F0F0F] py-10">
+    <section className="py-10">
 
       <div className="mx-auto max-w-6xl px-6">
 
-        <p className="mb-6 text-xs uppercase tracking-[0.35em] text-[#C4A882]">
+        <p className="mb-6 text-xs uppercase tracking-[0.35em] text-[var(--accent)]">
           {eyebrow}
         </p>
 

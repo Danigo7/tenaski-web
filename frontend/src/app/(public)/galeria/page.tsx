@@ -39,7 +39,7 @@ export default async function GaleriaPage() {
   }))
 
   return (
-    <main className="bg-[#0F0F0F]">
+    <main>
       <Hero
         imageUrl={getImage(heroBlock) ?? '/img/heroimg.png'}
         eyebrow={heroBlock?.data?.eyebrow ?? 'Galería'}

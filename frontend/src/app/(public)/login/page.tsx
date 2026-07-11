@@ -41,7 +41,7 @@ export default function LoginPage() {
 
       {/* Panel derecho */}
 
-      <section className='flex items-center justify-center bg-zinc-950 px-8'>
+      <section className='flex items-center justify-center  px-8'>
 
         <LoginForm />
 

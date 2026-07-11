@@ -86,7 +86,7 @@ export default async function Catalogo() {
   })
 
   return (
-    <main className="bg-[#0F0F0F]">
+    <main>
 
       <Hero
         imageUrl={getImage(heroBlock) ?? '/img/heroimg.png'}

@@ -4,61 +4,70 @@ import SectionTitle from '@/components/ui/SectionTitle'
 import SectionText from '../ui/SectionTest'
 
 type ManifestoProps = {
-  eyebrow: string    // Etiqueta superior (ej: "Nuestra filosofía")
-  title: string      // Título de la sección
-  description: string
-  imageUrl?: string  // Imagen lateral opcional
+eyebrow: string    // Etiqueta superior (ej: "Nuestra filosofía")
+title: string      // Título de la sección
+description: string
+imageUrl?: string  // Imagen lateral opcional
 }
 
 export default function Manifesto({ eyebrow, title, description, imageUrl }: ManifestoProps) {
-  return (
-    <section className="home-section py-10">
+return (
 
-      {/* Grid de 2 columnas en desktop: texto | imagen */}
-      <div className="mx-auto grid max-w-6xl items-center gap-20 px-6 lg:grid-cols-2">
+<section className="home-section py-10">
 
-        {/* ── TEXTO ─────────────────────────────────────────── */}
-        <div>
+  {/* Grid de 2 columnas en desktop: texto | imagen */}
+  <div className="mx-auto grid max-w-6xl items-center gap-20 px-6 lg:grid-cols-2">
 
-          {/* Eyebrow en dorado */}
-          <p className="home-section__eyebrow">
-            {eyebrow}
-          </p>
+    {/* ── TEXTO ─────────────────────────────────────────── */}
+    <div>
 
-          {/* Título con el componente compartido (max-w-2xl incluido) */}
-          <SectionTitle>{title}</SectionTitle>
+      {/* Eyebrow en dorado */}
+      <p className="home-section__eyebrow">
+        {eyebrow}
+      </p>
 
-          {/* Descripción con el componente compartido (max-w-lg incluido) */}
-          <div className="mt-10">
-            <SectionText>{description}</SectionText>
-          </div>
+      {/* Título con el componente compartido (max-w-2xl incluido) */}
+      <SectionTitle>{title}</SectionTitle>
 
-        </div>
-
-        {/* ── IMAGEN ────────────────────────────────────────── */}
-        {/* group permite que los hijos reaccionen al hover del contenedor */}
-        <div className="relative h-[520px] overflow-hidden group">
-
-          {/* Imagen o placeholder */}
-          {imageUrl ? (
-            <div
-              className="img-premium h-full w-full bg-cover bg-center"
-              style={{ backgroundImage: `url(${imageUrl})` }}
-            />
-          ) : (
-            <div className="home-section__image-placeholder flex h-full items-center justify-center">
-              <p className="text-xs uppercase tracking-[0.3em] text-[#E8E4DC]/20">
-                Imagen manifiesto
-              </p>
-            </div>
-          )}
-
-          {/* Overlay oscuro que desaparece en hover para revelar la imagen */}
-          <div className="absolute inset-0 bg-black/25 transition-opacity duration-700 group-hover:opacity-0" />
-
-        </div>
-
+      {/* Descripción con el componente compartido (max-w-lg incluido) */}
+      <div className="mt-10">
+        <SectionText>{description}</SectionText>
       </div>
-    </section>
-  )
+
+    </div>
+
+    {/* ── IMAGEN ────────────────────────────────────────── */}
+    {/* group permite que los hijos reaccionen al hover del contenedor */}
+    <div className="relative h-[520px] overflow-hidden group">
+
+      {/* Imagen o placeholder */}
+      {imageUrl ? (
+        <div
+          className="img-premium h-full w-full bg-cover bg-center"
+          style={{ backgroundImage: `url(${imageUrl})` }}
+        />
+      ) : (
+        <div className="home-section__image-placeholder flex h-full items-center justify-center">
+          <p
+            className="text-xs uppercase tracking-[0.3em]"
+            style={{ color: 'var(--placeholder)' }}
+          >
+            Imagen manifiesto
+          </p>
+        </div>
+      )}
+
+      {/* Overlay oscuro que desaparece en hover para revelar la imagen */}
+      <div
+        className="absolute inset-0 transition-opacity duration-700 group-hover:opacity-0"
+        style={{ backgroundColor: 'var(--overlay-medium)' }}
+      />
+
+    </div>
+
+  </div>
+
+</section>
+
+)
 }

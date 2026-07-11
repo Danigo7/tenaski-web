@@ -22,22 +22,30 @@ export default function Hero({ eyebrow, title, description, imageUrl, buttons }:
     <section className="home-section relative min-h-screen overflow-hidden">
 
       {/* ── FONDO ─────────────────────────────────────────── */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 overflow-hidden">
 
+        {/* 1. Imagen principal del Hero + Su propia transición inferior + Opacidad */}
         {imageUrl ? (
           <div
             className="h-full w-full bg-cover bg-center"
-            style={{ backgroundImage: `url(${imageUrl})` }}
+            style={{ 
+              backgroundImage: `url(${imageUrl})`,
+              opacity: 0.55, // <-- Aquí le damos el toque justo de opacidad para que trasluzca la madera
+              
+              // Creamos un fundido suave: arriba 100% visible, abajo se desvanece por completo
+              maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)'
+            }}
           />
         ) : (
-          <div className="h-full w-full bg-[#1a1714]" />
+          <div className="h-full w-full bg-[var(--surface-soft)]" />
         )}
 
-        {/* Overlay diagonal oscuro para dar profundidad */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#2a2420]/80 via-[#1a1714]/70 to-[#0F0F0F]" />
-
-        {/* Overlay inferior para que el texto destaque sobre el fondo */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0F0F0F] via-[#0F0F0F]/20 to-transparent" />
+        {/* 2. Filtro oscuro sutil sobre TODO el Hero para la legibilidad del texto,
+            reajustado para que acompañe bien a la opacidad de la imagen */}
+        <div 
+          className="absolute inset-0 pointer-events-none bg-gradient-to-t from-transparent via-[rgba(0,0,0,0.3)] to-[rgba(0,0,0,0.55)]" 
+        />
 
       </div>
 

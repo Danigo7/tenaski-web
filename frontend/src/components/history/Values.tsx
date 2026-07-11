@@ -41,10 +41,10 @@ export default function Values({ values }: ValuesProps) {
             <div
               key={value.number}
               className="
-                border border-white/5
+                border border-[var(--border)]
                 p-10
                 transition-all duration-500
-                hover:border-[#C4A882]/30
+                hover:border-[var(--accent)]/30
                 hover:-translate-y-1
               "
             >

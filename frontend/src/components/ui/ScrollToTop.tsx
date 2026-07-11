@@ -22,13 +22,13 @@ export default function ScrollToTop() {
         group
         flex items-center justify-center
         w-11 h-11
-        border border-[#E8E4DC]/15
-        bg-[#0F0F0F]/80 backdrop-blur-sm
-        text-[#E8E4DC]/40
+        border border-[var(--border-hover)]
+        bg-[var(--background)]/80 backdrop-blur-sm
+        text-[var(--text-muted)]
         transition-all duration-500 ease-in-out
-        hover:border-[#C4A882]/50
-        hover:text-[#C4A882]
-        hover:bg-[#0F0F0F]/95
+        hover:border-[var(--accent)]/50
+        hover:text-[var(--accent)]
+        hover:bg-[var(--background)]/95
         ${visible
           ? 'opacity-100 translate-y-0 pointer-events-auto'
           : 'opacity-0 translate-y-4 pointer-events-none'

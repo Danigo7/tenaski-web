@@ -52,7 +52,7 @@ export default function Story({
             </div>
           )}
 
-          <div className="absolute inset-0 bg-black/25 transition-opacity duration-700 group-hover:opacity-0" />
+          <div className="absolute inset-0 bg-[var(--overlay-light)] transition-opacity duration-700 group-hover:opacity-0" />
 
         </div>
 

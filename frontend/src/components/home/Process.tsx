@@ -71,10 +71,10 @@ export default function Process({ eyebrow, title, description, steps }: ProcessP
                   )}
 
                   {/* Overlay oscuro que desaparece en hover */}
-                  <div className="absolute inset-0 bg-black/20 transition-opacity duration-700 group-hover:opacity-0" />
+                  <div className="absolute inset-0 bg-[var(--overlay-light)] transition-opacity duration-700 group-hover:opacity-0" />
 
                   {/* Gradiente inferior para fundir con el fondo */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0F0F0F]/40 to-transparent" />
+                  <div className="absolute inset-0 bg-[image:var(--gradient-dark)]" />
 
                 </div>
 

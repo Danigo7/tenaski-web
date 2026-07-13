@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import ProductGallery from '@/components/catalog/ProductGallery'
+import DesignModal from '@/components/catalog/DesignModal'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,6 +17,13 @@ type ImageRow = {
     ruta_storage: string
     texto_alt: string | null
   }
+}
+
+function getImage(block: any): string | null {
+  const img = block?.image
+  if (!img) return null
+  if (Array.isArray(img)) return img[0]?.ruta_storage ?? null
+  return img.ruta_storage ?? null
 }
 
 // ─── SEO ──────────────────────────────────────────────────
@@ -80,6 +88,20 @@ export default async function ProductoPage({ params }: Props) {
       principal: pi.imagen_principal,
     }))
 
+  // ─────────────────────────────────────────────
+  // ACABADOS DISPONIBLES (para "Crea tu diseño")
+  // ─────────────────────────────────────────────
+  const { data: acabadosRows } = await supabase
+    .from('acabado')
+    .select('id, nombre, image:imagen_id (ruta_storage)')
+    .order('orden', { ascending: true })
+
+  const acabados = (acabadosRows ?? []).map((a) => ({
+    id: a.id,
+    nombre: a.nombre,
+    imageUrl: getImage(a) ?? null,
+  }))
+
   return (
     // pt-[80px] para compensar el Navbar global fijo que ya existe
     <main className="min-h-screen text-[var(--foreground)] pt-[80px] lg:pt-0">
@@ -101,7 +123,7 @@ export default async function ProductoPage({ params }: Props) {
             </p>
 
             {/* Nombre */}
-            <h1 className="... text-[var(--foreground)]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+            <h1 className="home-section__title mb-2">
               {data.nombre}
             </h1>
 
@@ -144,6 +166,17 @@ export default async function ProductoPage({ params }: Props) {
               Solicitar información
               <span>→</span>
             </Link>
+
+            {/* Crea tu diseño */}
+            <DesignModal
+              product={{
+                id: data.id,
+                nombre: data.nombre,
+                slug: data.slug,
+                precio: data.precio,
+              }}
+              acabados={acabados}
+            />
 
             {/* Footer de columna */}
             <div className="mt-16 pt-8 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--text-disabled)]">

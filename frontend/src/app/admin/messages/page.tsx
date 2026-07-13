@@ -4,21 +4,25 @@
 
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import Image from 'next/image'
 import { markMessageRead, deleteMessage } from './actions'
 import DeleteMessageButton from './DeleteMessageButton'
-
 
 // ── Tipos ────────────────────────────────────────────────────────────────────
 
 interface Message {
-  id:         string
-  nombre:     string
-  email:      string
-  telefono:   string | null
-  asunto:     string | null
-  mensaje:    string
-  estado:     'nuevo' | 'leido' | 'archivado'
+  id: string
+  nombre: string
+  email: string
+  telefono: string | null
+  asunto: string | null
+  mensaje: string
+  estado: 'nuevo' | 'leido' | 'archivado'
   created_at: string
+  tipo: 'contacto' | 'diseno'
+  producto_id: string | null
+  imagen_diseno_url: string | null
+  imagenes_originales_urls: string[] | null
 }
 
 // ── Página ───────────────────────────────────────────────────────────────────
@@ -34,18 +38,44 @@ export default async function MessagesPage({
   // Todos los mensajes ordenados por fecha desc
   const { data: messages } = await supabase
     .from('message')
-    .select('id, nombre, email, telefono, asunto, mensaje, estado, created_at')
+    .select(`
+      id,
+      nombre,
+      email,
+      telefono,
+      asunto,
+      mensaje,
+      estado,
+      created_at,
+      tipo,
+      producto_id,
+      imagen_diseno_url,
+      imagenes_originales_urls
+    `)
     .order('created_at', { ascending: false })
 
   const all = (messages ?? []) as Message[]
 
   // Mensaje seleccionado según ?id= en la URL
   const activeId = id ?? null
-  const active   = all.find((m) => m.id === activeId) ?? null
+  const active = all.find((m) => m.id === activeId) ?? null
 
-  // Si el mensaje activo es "nuevo", marcarlo como leído
+  // Si el mensaje activo es "nuevo", marcarlo como leído en el servidor
   if (active && active.estado === 'nuevo') {
     await markMessageRead(active.id)
+    // Cambiamos el estado en memoria para que la UI refleje que ya no es "NEW" inmediatamente
+    active.estado = 'leido'
+  }
+
+  // Nombre del producto del diseño activo (si aplica)
+  let activeProductName: string | null = null
+  if (active?.tipo === 'diseno' && active.producto_id) {
+    const { data: product } = await supabase
+      .from('product')
+      .select('nombre, slug')
+      .eq('id', active.producto_id)
+      .single()
+    activeProductName = product?.nombre ?? null
   }
 
   return (
@@ -64,7 +94,6 @@ export default async function MessagesPage({
 
         {/* ── LISTA ──────────────────────────────────────────────────────── */}
         <div className="rounded-xl border border-zinc-800 bg-zinc-900 overflow-hidden">
-
           {all.length === 0 ? (
             <p className="p-6 text-sm text-zinc-500">No hay mensajes todavía.</p>
           ) : (
@@ -79,7 +108,7 @@ export default async function MessagesPage({
                         isActive ? 'bg-zinc-800 border-l-2 border-[#C4A882]' : ''
                       }`}
                     >
-                      {/* Nombre + badge */}
+                      {/* Nombre + badges */}
                       <div className="flex items-center gap-2">
                         <span
                           className={`truncate text-sm font-medium ${
@@ -88,6 +117,11 @@ export default async function MessagesPage({
                         >
                           {msg.nombre}
                         </span>
+                        {msg.tipo === 'diseno' && (
+                          <span className="shrink-0 rounded-full border border-[#C4A882]/40 bg-[#C4A882]/10 px-1.5 py-0.5 text-[10px] font-bold text-[#C4A882]">
+                            DISEÑO
+                          </span>
+                        )}
                         {msg.estado === 'nuevo' && (
                           <span className="shrink-0 rounded-full bg-[#C4A882] px-1.5 py-0.5 text-[10px] font-bold text-[#0F0F0F]">
                             NEW
@@ -114,15 +148,21 @@ export default async function MessagesPage({
 
         {/* ── DETALLE ────────────────────────────────────────────────────── */}
         <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-
           {active ? (
             <article className="space-y-6">
 
               {/* Cabecera del mensaje */}
               <div className="space-y-1 border-b border-zinc-800 pb-6">
-                <h2 className="font-['Cormorant_Garamond'] text-2xl font-semibold text-[#E8E4DC]">
-                  {active.asunto ?? '(sin asunto)'}
-                </h2>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-['Cormorant_Garamond'] text-2xl font-semibold text-[#E8E4DC]">
+                    {active.asunto ?? '(sin asunto)'}
+                  </h2>
+                  {active.tipo === 'diseno' && (
+                    <span className="rounded-full border border-[#C4A882]/40 bg-[#C4A882]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#C4A882]">
+                      Diseño personalizado
+                    </span>
+                  )}
+                </div>
 
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-400 pt-1">
                   <span>
@@ -149,12 +189,73 @@ export default async function MessagesPage({
                   )}
                   <span className="text-zinc-500">{formatDateFull(active.created_at)}</span>
                 </div>
+
+                {activeProductName && (
+                  <p className="pt-1 text-sm text-zinc-400">
+                    <span className="text-zinc-500">Producto: </span>
+                    <span className="text-[#E8E4DC]">{activeProductName}</span>
+                  </p>
+                )}
               </div>
 
               {/* Cuerpo del mensaje */}
               <div className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-300">
                 {active.mensaje}
               </div>
+
+              {/* Diseño personalizado: imágenes */}
+              {active.tipo === 'diseno' && (
+                <div className="space-y-4 border-t border-zinc-800 pt-6">
+                  {active.imagen_diseno_url && (
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                        Diseño enviado
+                      </p>
+                      <a
+                        href={active.imagen_diseno_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-block overflow-hidden rounded-lg border border-zinc-700 transition hover:border-[#C4A882]"
+                      >
+                        <Image
+                          src={active.imagen_diseno_url}
+                          alt="Diseño enviado por el cliente"
+                          width={160}
+                          height={420}
+                          className="h-64 w-auto object-contain bg-zinc-950"
+                        />
+                      </a>
+                    </div>
+                  )}
+
+                  {active.imagenes_originales_urls && active.imagenes_originales_urls.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">
+                        Imágenes originales ({active.imagenes_originales_urls.length})
+                      </p>
+                      <div className="flex flex-wrap gap-3">
+                        {active.imagenes_originales_urls.map((url, index) => (
+                          <a
+                            key={url}
+                            href={url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="overflow-hidden rounded-lg border border-zinc-700 transition hover:border-[#C4A882]"
+                          >
+                            <Image
+                              src={url}
+                              alt={`Imagen original ${index + 1}`}
+                              width={96}
+                              height={96}
+                              className="h-24 w-24 object-cover bg-zinc-950"
+                            />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Acciones */}
               <div className="border-t border-zinc-800 pt-4">
@@ -163,17 +264,15 @@ export default async function MessagesPage({
 
             </article>
           ) : (
-            <div className="flex h-full items-center justify-center">
+            <div className="flex h-full items-center justify-center text-center py-20">
               <p className="text-sm text-zinc-500">
                 Selecciona un mensaje para verlo.
               </p>
             </div>
           )}
-
         </div>
 
       </div>
-
     </div>
   )
 }
@@ -182,18 +281,18 @@ export default async function MessagesPage({
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('es-ES', {
-    day:   '2-digit',
+    day: '2-digit',
     month: 'short',
-    year:  'numeric',
+    year: 'numeric',
   })
 }
 
 function formatDateFull(iso: string) {
   return new Date(iso).toLocaleString('es-ES', {
-    day:    '2-digit',
-    month:  'long',
-    year:   'numeric',
-    hour:   '2-digit',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
     minute: '2-digit',
   })
 }

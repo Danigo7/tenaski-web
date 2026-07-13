@@ -23,7 +23,7 @@ export default function ScrollToTop() {
         flex items-center justify-center
         w-11 h-11
         border border-[var(--border-hover)]
-        bg-[var(--background)]/80 backdrop-blur-sm
+        bg-[var(--navbar-bg)]/80 backdrop-blur-sm
         text-[var(--text-muted)]
         transition-all duration-500 ease-in-out
         hover:border-[var(--accent)]/50

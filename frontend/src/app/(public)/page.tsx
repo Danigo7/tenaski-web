@@ -82,6 +82,30 @@ export default async function Home() {
   }))
 
   // ─────────────────────────────────────────────
+  // ACABADOS PREMIUM
+  // ─────────────────────────────────────────────
+  const { data: acabadosPremiumBlock } = await supabase
+    .from('content_block')
+    .select('data')
+    .eq('seccion', 'acabados_premium_home')
+    .single()
+
+  const { data: acabadosPremiumRows } = await supabase
+    .from('acabado')
+    .select('id, nombre, descripcion, precio_extra, image:imagen_id (ruta_storage)')
+    .eq('es_premium', true)
+    .order('orden', { ascending: true })
+
+  const acabadosPremium = (acabadosPremiumRows ?? []).map((a) => ({
+    id: a.id,
+    nombre: a.nombre,
+    descripcion: a.descripcion,
+    precioExtra: a.precio_extra,
+    imageUrl: getImage(a) ?? null,
+  }))
+  
+
+  // ─────────────────────────────────────────────
   // CTA HOME
   // ─────────────────────────────────────────────
   const { data: ctaHome } = await supabase
@@ -186,6 +210,17 @@ export default async function Home() {
             'Cada esquí puede personalizarse con distintos acabados de madera.'
           }
           acabados={acabados}
+        />
+      )}
+{/* ACABADOS PREMIUM */}
+      {(acabadosPremiumBlock?.data?.activo ?? true) && (
+        <Acabados
+          eyebrow={acabadosPremiumBlock?.data?.eyebrow ?? 'Acabados premium'}
+          description={
+            acabadosPremiumBlock?.data?.descripcion ??
+            'Acabados exclusivos con un coste adicional sobre el precio base.'
+          }
+          acabados={acabadosPremium}
         />
       )}
 

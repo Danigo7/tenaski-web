@@ -8,6 +8,7 @@ import WorkshopContentForm from './WorkshopContentForm'
 import CTAContentForm from './CTAContentForm'
 import IntroContentForm from './IntroContentForm'
 import AcabadosContentForm from './AcabadosContentForm'
+import AcabadosPremiumContentForm from './AcabadosPremiumContentForm'
 import SectionGroup from './Sectiongroup'
 
 export default async function ContentPage() {
@@ -110,13 +111,41 @@ export default async function ContentPage() {
       nombre,
       descripcion,
       imagen_id,
+      sin_grabado,
       image:imagen_id (
         id,
         ruta_storage
       )
     `)
+    .eq('es_premium', false)
     .order('orden', { ascending: true })
 
+  // ─────────────────────────────────────────────
+  // ACABADOS PREMIUM (HOME)
+  // ─────────────────────────────────────────────
+  const { data: acabadosPremiumBlock } = await supabase
+    .from('content_block')
+    .select('id, seccion, data')
+    .eq('seccion', 'acabados_premium_home')
+    .single()
+
+  const { data: acabadosPremiumRows } = await supabase
+    .from('acabado')
+    .select(`
+      id,
+      nombre,
+      descripcion,
+      precio_extra,
+      imagen_id,
+      sin_grabado,
+      image:imagen_id (
+        id,
+        ruta_storage
+      )
+    `)
+    .eq('es_premium', true)
+    .order('orden', { ascending: true })
+    
   // ─────────────────────────────────────────────
   // HISTORIA
   // ─────────────────────────────────────────────
@@ -184,7 +213,7 @@ export default async function ContentPage() {
       <SectionGroup
         title="Home"
         description="Cabecera, manifiesto, proceso, Acabados y CTA de la página principal."
-        count={5}
+        count={6}
       >
         <HeroContentForm
           titulo="Cabecera · Home"
@@ -207,6 +236,11 @@ export default async function ContentPage() {
         <AcabadosContentForm
           block={acabadosBlock ?? null}
           acabados={acabadosRows ?? []}
+        />
+
+        <AcabadosPremiumContentForm
+          block={acabadosPremiumBlock ?? null}
+          acabados={acabadosPremiumRows ?? []}
         />
 
         <CTAContentForm

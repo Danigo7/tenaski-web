@@ -9,7 +9,6 @@ type Props = {
   onClose: () => void
 }
 
-// ─── Tipos internos ────────────────────────────────────────
 type ExistingImage = {
   id: string
   nombre_archivo: string
@@ -18,23 +17,18 @@ type ExistingImage = {
 }
 
 type PendingFile = {
-  // Archivo local pendiente de subir
-  localId: string       // id temporal en UI
+  localId: string
   file: File
-  preview: string       // object URL para preview
+  preview: string
 }
 
-// ─── Helpers ───────────────────────────────────────────────
 function makeLocalId() {
   return Math.random().toString(36).slice(2)
 }
 
-// ═══════════════════════════════════════════════════════════
 export default function CreateProductModal({ open, onClose }: Props) {
-  // ── Step ──────────────────────────────────────────────────
   const [step, setStep] = useState<1 | 2>(1)
 
-  // ── Step 1: datos del producto ────────────────────────────
   const [formValues, setFormValues] = useState({
     nombre: '',
     precio: '',
@@ -44,28 +38,40 @@ export default function CreateProductModal({ open, onClose }: Props) {
     destacado: false,
   })
 
-  // ── Step 2: imágenes ──────────────────────────────────────
+  // ── Medidas y precios extra de zona ───────────────────────
+  // medidas: hasta 3 valores libres (ej. '1.60'). Vacío = no se
+  // muestra selector de medida en el DesignModal.
+  const [medidas, setMedidas] = useState<string[]>(['', '', ''])
+
+  const addMedidaField = () => {
+    setMedidas((prev) => [...prev, ''])
+  }
+
+  const removeMedidaField = (index: number) => {
+    setMedidas((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const [precioExtraEspatula, setPrecioExtraEspatula] = useState('')
+  const [precioExtraCola, setPrecioExtraCola] = useState('')
+
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([])
   const [existingImages, setExistingImages] = useState<ExistingImage[]>([])
   const [selectedExisting, setSelectedExisting] = useState<Set<string>>(new Set())
   const [loadingExisting, setLoadingExisting] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [editMedidas, setEditMedidas] = useState<string[]>([])
+  const [editPrecioExtraEspatula, setEditPrecioExtraEspatula] = useState('')
+  const [editPrecioExtraCola, setEditPrecioExtraCola] = useState('')
 
-  // ── Submit global ─────────────────────────────────────────
   const [loading, setLoading] = useState(false)
 
-  // ── Refs ──────────────────────────────────────────────────
   const fileInputRef = useRef<HTMLInputElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
 
-  // ──────────────────────────────────────────────────────────
-  // Cerrar al clicar el overlay (fuera del panel)
-  // ──────────────────────────────────────────────────────────
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === overlayRef.current) handleClose()
   }
 
-  // Resetear estado al cerrar
   const handleClose = () => {
     setStep(1)
     setFormValues({
@@ -76,24 +82,20 @@ export default function CreateProductModal({ open, onClose }: Props) {
       publicado: false,
       destacado: false,
     })
+    setMedidas(['', '', ''])
+    setPrecioExtraEspatula('')
+    setPrecioExtraCola('')
     setPendingFiles([])
     setSelectedExisting(new Set())
     onClose()
   }
 
-  // ──────────────────────────────────────────────────────────
-  // STEP 1 → validar y avanzar (NO guarda nada aún)
-  // ──────────────────────────────────────────────────────────
   const handleStep1Continue = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // Cargar imágenes existentes al entrar al paso 2
     loadExistingImages()
     setStep(2)
   }
 
-  // ──────────────────────────────────────────────────────────
-  // Cargar imágenes ya subidas en la BD (para reciclar)
-  // ──────────────────────────────────────────────────────────
   const loadExistingImages = async () => {
     setLoadingExisting(true)
     try {
@@ -113,9 +115,6 @@ export default function CreateProductModal({ open, onClose }: Props) {
     }
   }
 
-  // ──────────────────────────────────────────────────────────
-  // Manejo de archivos nuevos (input + drag & drop)
-  // ──────────────────────────────────────────────────────────
   const addFiles = (fileList: FileList | File[]) => {
     const newPending: PendingFile[] = Array.from(fileList).map((file) => ({
       localId: makeLocalId(),
@@ -128,7 +127,6 @@ export default function CreateProductModal({ open, onClose }: Props) {
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       addFiles(e.target.files)
-      // Resetear input para poder volver a seleccionar los mismos archivos
       e.target.value = ''
     }
   }
@@ -141,7 +139,6 @@ export default function CreateProductModal({ open, onClose }: Props) {
     })
   }
 
-  // ── Drag & drop ───────────────────────────────────────────
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(true)
@@ -160,7 +157,6 @@ export default function CreateProductModal({ open, onClose }: Props) {
     if (dropped.length > 0) addFiles(dropped)
   }, [])
 
-  // ── Selección de existentes ───────────────────────────────
   const toggleExisting = (id: string) => {
     setSelectedExisting((prev) => {
       const next = new Set(prev)
@@ -169,37 +165,36 @@ export default function CreateProductModal({ open, onClose }: Props) {
     })
   }
 
-  // ──────────────────────────────────────────────────────────
-  // SUBMIT FINAL: sube imágenes → crea producto → crea relaciones
-  // Todo en orden, nada se guarda si algo falla antes
-  // ──────────────────────────────────────────────────────────
+  const handleMedidaChange = (index: number, value: string) => {
+    setMedidas((prev) => {
+      const next = [...prev]
+      next[index] = value
+      return next
+    })
+  }
+
   const handleSubmit = async () => {
     setLoading(true)
 
     try {
-
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('No autorizado')
-        
-      // 1. Subir archivos nuevos a Storage e insertar en tabla image
+
       const uploadedImageIds: string[] = []
 
       for (const pending of pendingFiles) {
         const fileName = `${Date.now()}-${pending.file.name}`
 
-        // Storage (bucket: product-images)
         const { error: storageError } = await supabase.storage
           .from('product-images')
           .upload(fileName, pending.file)
 
         if (storageError) throw storageError
 
-        // URL pública
         const { data: urlData } = supabase.storage
           .from('product-images')
           .getPublicUrl(fileName)
 
-        // Insertar en tabla image
         const { data: imgRow, error: imgError } = await supabase
           .from('image')
           .insert({
@@ -214,13 +209,16 @@ export default function CreateProductModal({ open, onClose }: Props) {
         uploadedImageIds.push(imgRow.id)
       }
 
-      // 2. IDs totales = nuevas subidas + existentes seleccionadas
       const allImageIds = [
         ...uploadedImageIds,
         ...Array.from(selectedExisting),
       ]
 
-      // 3. Crear producto + relaciones (server action)
+      // Solo medidas rellenadas, sin espacios y máximo 3
+      const medidasFiltradas = medidas
+        .map((m) => m.trim())
+        .filter((m) => m.length > 0)
+
       const formData = new FormData()
       formData.set('nombre', formValues.nombre)
       formData.set('precio', formValues.precio)
@@ -228,8 +226,10 @@ export default function CreateProductModal({ open, onClose }: Props) {
       formData.set('descripcion_larga', formValues.descripcion_larga)
       if (formValues.publicado) formData.set('publicado', 'on')
       if (formValues.destacado) formData.set('destacado', 'on')
-      // Pasar IDs de imágenes al server action
       formData.set('image_ids', JSON.stringify(allImageIds))
+      formData.set('medidas', JSON.stringify(medidasFiltradas))
+      formData.set('precio_extra_espatula', precioExtraEspatula || '0')
+      formData.set('precio_extra_cola', precioExtraCola || '0')
 
       await createProductWithImages(formData)
 
@@ -242,20 +242,14 @@ export default function CreateProductModal({ open, onClose }: Props) {
     }
   }
 
-  // ──────────────────────────────────────────────────────────
   if (!open) return null
 
-  // ──────────────────────────────────────────────────────────
-  // RENDER
-  // ──────────────────────────────────────────────────────────
   return (
-    /* Overlay: clic fuera cierra */
     <div
       ref={overlayRef}
       onClick={handleOverlayClick}
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/70 p-4 overflow-y-auto"
     >
-      {/* Panel: max-height + scroll interno */}
       <div
         className="
           relative w-full max-w-2xl my-auto
@@ -263,7 +257,6 @@ export default function CreateProductModal({ open, onClose }: Props) {
           flex flex-col max-h-[90vh]
         "
       >
-        {/* ── HEADER ─────────────────────────────────── */}
         <div className="flex items-center justify-between p-6 border-b border-zinc-800 shrink-0">
           <div>
             <h2 className="text-xl font-semibold text-white">
@@ -276,7 +269,6 @@ export default function CreateProductModal({ open, onClose }: Props) {
             </p>
           </div>
 
-          {/* X para cerrar */}
           <button
             onClick={handleClose}
             className="text-zinc-500 hover:text-white transition text-xl leading-none"
@@ -286,15 +278,9 @@ export default function CreateProductModal({ open, onClose }: Props) {
           </button>
         </div>
 
-        {/* ── CONTENIDO CON SCROLL ───────────────────── */}
         <div className="overflow-y-auto flex-1 p-6">
-
-          {/* ════════════════════════════════════════════
-              STEP 1 — Datos del producto
-          ════════════════════════════════════════════ */}
           {step === 1 && (
             <form id="step1-form" onSubmit={handleStep1Continue} className="space-y-5">
-
               <div>
                 <label className="text-sm text-zinc-400">Nombre *</label>
                 <input
@@ -387,22 +373,95 @@ export default function CreateProductModal({ open, onClose }: Props) {
                   Destacado
                 </label>
               </div>
+
+              {/* ── Medidas ─────────────────────────────── */}
+              <div className="rounded-lg border border-zinc-800 p-4">
+                <label className="text-sm text-zinc-400">
+                  Medidas disponibles (opcional)
+                </label>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Si no rellenas ninguna, en "Crea tu diseño" no aparecerá selector de medida.
+                </p>
+
+                <div className="mt-3 grid grid-cols-3 gap-3">
+                  {medidas.map((m, i) => (
+                    <div key={i} className="relative">
+                      <input
+                        type="text"
+                        value={m}
+                        onChange={(e) => handleMedidaChange(i, e.target.value)}
+                        placeholder="Ej. 1.60"
+                        className="w-full p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm focus:outline-none focus:border-zinc-600"
+                      />
+
+                      {i >= 3 && (
+                        <button
+                          type="button"
+                          onClick={() => removeMedidaField(i)}
+                          className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-700 text-xs text-white hover:bg-zinc-600"
+                          aria-label="Eliminar medida"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={addMedidaField}
+                  className="mt-3 text-xs font-medium text-zinc-300 underline underline-offset-2 hover:text-white"
+                >
+                  + Añadir medida
+                </button>
+              </div>
+
+              {/* ── Precio extra por zona personalizada ───── */}
+              <div className="rounded-lg border border-zinc-800 p-4">
+                <label className="text-sm text-zinc-400">
+                  Precio extra por personalización
+                </label>
+                <p className="mt-1 text-xs text-zinc-600">
+                  Se suma una sola vez si el cliente añade cualquier imagen o texto en esa zona (independientemente de cuántos elementos ponga).
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-zinc-500">Espátula (€)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={precioExtraEspatula}
+                      onChange={(e) => setPrecioExtraEspatula(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full mt-1 p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm focus:outline-none focus:border-zinc-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500">Cola (€)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={precioExtraCola}
+                      onChange={(e) => setPrecioExtraCola(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full mt-1 p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm focus:outline-none focus:border-zinc-600"
+                    />
+                  </div>
+                </div>
+              </div>
             </form>
           )}
 
-          {/* ════════════════════════════════════════════
-              STEP 2 — Imágenes
-          ════════════════════════════════════════════ */}
           {step === 2 && (
             <div className="space-y-8">
-
-              {/* ── Zona drag & drop ─────────────────── */}
               <div>
                 <p className="text-sm text-zinc-400 mb-3">
                   Sube imágenes nuevas
                 </p>
 
-                {/* Input file oculto — se abre con el botón */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -413,7 +472,6 @@ export default function CreateProductModal({ open, onClose }: Props) {
                   aria-label="Seleccionar imágenes"
                 />
 
-                {/* Zona de drop */}
                 <div
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
@@ -436,7 +494,6 @@ export default function CreateProductModal({ open, onClose }: Props) {
                   <p className="text-xs mt-1 opacity-60">PNG, JPG, WEBP…</p>
                 </div>
 
-                {/* Preview de archivos seleccionados */}
                 {pendingFiles.length > 0 && (
                   <div className="mt-4 grid grid-cols-3 gap-3">
                     {pendingFiles.map((pf) => (
@@ -468,7 +525,6 @@ export default function CreateProductModal({ open, onClose }: Props) {
                 )}
               </div>
 
-              {/* ── Imágenes existentes (reciclar) ───── */}
               <div>
                 <p className="text-sm text-zinc-400 mb-3">
                   O reutiliza imágenes ya subidas
@@ -514,15 +570,11 @@ export default function CreateProductModal({ open, onClose }: Props) {
                   </div>
                 )}
               </div>
-
             </div>
           )}
         </div>
 
-        {/* ── FOOTER (sticky) ────────────────────────── */}
         <div className="shrink-0 p-6 border-t border-zinc-800 flex justify-between items-center gap-3">
-
-          {/* Botón cancelar / volver */}
           {step === 1 ? (
             <button
               type="button"
@@ -541,7 +593,6 @@ export default function CreateProductModal({ open, onClose }: Props) {
             </button>
           )}
 
-          {/* Acción principal */}
           {step === 1 ? (
             <button
               type="submit"
@@ -560,7 +611,6 @@ export default function CreateProductModal({ open, onClose }: Props) {
               {loading ? 'Guardando…' : 'Guardar producto'}
             </button>
           )}
-
         </div>
       </div>
     </div>

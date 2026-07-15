@@ -15,6 +15,9 @@ type Product = {
   descripcion_larga: string | null
   publicado: boolean
   destacado: boolean
+  medidas: string[]
+  precio_extra_espatula: number
+  precio_extra_cola: number
 }
 
 type ProductTableProps = {
@@ -56,6 +59,11 @@ export default function ProductTable({ products }: ProductTableProps) {
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [editLoading, setEditLoading] = useState(false)
   const editFormRef = useRef<HTMLFormElement>(null)
+
+  // ── Editar producto — medidas y precio extra ────────────
+  const [editMedidas, setEditMedidas] = useState<string[]>([])
+  const [editPrecioExtraEspatula, setEditPrecioExtraEspatula] = useState('')
+  const [editPrecioExtraCola, setEditPrecioExtraCola] = useState('')
 
   // ── Editar producto — imágenes actuales ────────────────
   const [currentImages, setCurrentImages] = useState<CurrentImage[]>([])
@@ -106,6 +114,18 @@ export default function ProductTable({ products }: ProductTableProps) {
     setSelectedLibrary(new Set())
     setPrincipalImageId(null)
 
+    // Medidas: mostramos siempre mínimo 3 huecos, igual que en crear
+    const medidasIniciales = [...(product.medidas ?? [])]
+    while (medidasIniciales.length < 3) medidasIniciales.push('')
+    setEditMedidas(medidasIniciales)
+
+    setEditPrecioExtraEspatula(
+      product.precio_extra_espatula ? String(product.precio_extra_espatula) : ''
+    )
+    setEditPrecioExtraCola(
+      product.precio_extra_cola ? String(product.precio_extra_cola) : ''
+    )
+
     // Imágenes actuales del producto
     setLoadingCurrentImages(true)
     const { data: piData } = await supabase
@@ -154,6 +174,28 @@ export default function ProductTable({ products }: ProductTableProps) {
     setEditProduct(null)
     pendingFiles.forEach((f) => URL.revokeObjectURL(f.preview))
     setPendingFiles([])
+    setEditMedidas([])
+    setEditPrecioExtraEspatula('')
+    setEditPrecioExtraCola('')
+  }
+
+  // ──────────────────────────────────────────────────────────
+  // Medidas (edición)
+  // ──────────────────────────────────────────────────────────
+  const addEditMedidaField = () => {
+    setEditMedidas((prev) => [...prev, ''])
+  }
+
+  const removeEditMedidaField = (index: number) => {
+    setEditMedidas((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleEditMedidaChange = (index: number, value: string) => {
+    setEditMedidas((prev) => {
+      const next = [...prev]
+      next[index] = value
+      return next
+    })
   }
 
   // ──────────────────────────────────────────────────────────
@@ -270,6 +312,15 @@ export default function ProductTable({ products }: ProductTableProps) {
 
       // 3. Actualizar datos del producto
       const formData = new FormData(editFormRef.current)
+
+      const medidasFiltradas = editMedidas
+        .map((m) => m.trim())
+        .filter((m) => m.length > 0)
+
+      formData.set('medidas', JSON.stringify(medidasFiltradas))
+      formData.set('precio_extra_espatula', editPrecioExtraEspatula || '0')
+      formData.set('precio_extra_cola', editPrecioExtraCola || '0')
+
       await updateProduct(editProduct.id, formData)
 
       // 4. Actualizar relaciones de imágenes, pasando la imagen principal elegida
@@ -504,6 +555,85 @@ export default function ProductTable({ products }: ProductTableProps) {
                     <input type="checkbox" name="destacado" defaultChecked={editProduct.destacado} value="on" className="accent-white" />
                     Destacado
                   </label>
+                </div>
+
+                {/* ── Medidas ─────────────────────────────── */}
+                <div className="rounded-lg border border-zinc-800 p-4">
+                  <label className="text-sm text-zinc-400">
+                    Medidas disponibles (opcional)
+                  </label>
+                  <p className="mt-1 text-xs text-zinc-600">
+                    Si no rellenas ninguna, en "Crea tu diseño" no aparecerá selector de medida.
+                  </p>
+
+                  <div className="mt-3 grid grid-cols-3 gap-3">
+                    {editMedidas.map((m, i) => (
+                      <div key={i} className="relative">
+                        <input
+                          type="text"
+                          value={m}
+                          onChange={(e) => handleEditMedidaChange(i, e.target.value)}
+                          placeholder="Ej. 1.60"
+                          className="w-full p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm focus:outline-none focus:border-zinc-600"
+                        />
+
+                        {i >= 3 && (
+                          <button
+                            type="button"
+                            onClick={() => removeEditMedidaField(i)}
+                            className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-zinc-700 text-xs text-white hover:bg-zinc-600"
+                            aria-label="Eliminar medida"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={addEditMedidaField}
+                    className="mt-3 text-xs font-medium text-zinc-300 underline underline-offset-2 hover:text-white"
+                  >
+                    + Añadir medida
+                  </button>
+                </div>
+
+                {/* ── Precio extra por zona personalizada ───── */}
+                <div className="rounded-lg border border-zinc-800 p-4">
+                  <label className="text-sm text-zinc-400">
+                    Precio extra por personalización
+                  </label>
+                  <p className="mt-1 text-xs text-zinc-600">
+                    Se suma una sola vez si el cliente añade cualquier imagen o texto en esa zona (independientemente de cuántos elementos ponga).
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs text-zinc-500">Espátula (€)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={editPrecioExtraEspatula}
+                        onChange={(e) => setEditPrecioExtraEspatula(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full mt-1 p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm focus:outline-none focus:border-zinc-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-zinc-500">Cola (€)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={editPrecioExtraCola}
+                        onChange={(e) => setEditPrecioExtraCola(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full mt-1 p-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white text-sm focus:outline-none focus:border-zinc-600"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 

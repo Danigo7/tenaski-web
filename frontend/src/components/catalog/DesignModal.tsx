@@ -1,29 +1,5 @@
 'use client'
 
-// components/catalog/DesignModal.tsx
-//
-// Botón "Crea tu diseño" + modal con el editor de esquí personalizado.
-// Hay DOS canvases superpuestos, ambos con tamaño en píxeles EXPLÍCITO:
-//  - "design" (designCanvasRef): el diseño real — silueta, acabado de
-//    fondo, imágenes y textos del usuario. Es el ÚNICO que se descarga
-//    o se envía como imagen compuesta.
-//  - "guide" (guideCanvasRef): capa transparente encima, solo con las
-//    líneas discontinuas de las zonas nose/tail y el marco de selección.
-//    Nunca se exporta ni se envía — es puramente visual/interactivo.
-//
-// Los elementos que el usuario coloca (`items`) pueden ser de tipo
-// 'image' o 'text', ambos comparten posición/escala/rotación y viven
-// siempre dentro de una zona (nose o tail).
-//
-// ── SEGURIDAD ──────────────────────────────────────────────────────────
-// 1. Honeypot anti-bot en el formulario de compra.
-// 2. Los límites de tamaño/tipo del archivo final se aplican también en
-//    el bucket de Supabase (Storage → design-images → Edit bucket).
-// 3. Las imágenes del editor NO se suben a Supabase mientras se están
-//    editando — viven solo en memoria del navegador. Se suben (el PNG
-//    final + cada imagen original) únicamente al pulsar "Enviar pedido".
-// ──────────────────────────────────────────────────────────────────────
-
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
@@ -43,6 +19,15 @@ type Acabado = {
   id: string
   nombre: string
   imageUrl: string | null
+  sinGrabado: boolean
+}
+
+type AcabadoPremium = {
+  id: string
+  nombre: string
+  imageUrl: string | null
+  precioExtra: number
+  sinGrabado: boolean
 }
 
 type Product = {
@@ -55,6 +40,10 @@ type Product = {
 type Props = {
   product: Product
   acabados: Acabado[]
+  acabadosPremium: AcabadoPremium[]
+  medidas: string[]
+  precioExtraEspatula: number
+  precioExtraCola: number
 }
 
 type Step = 'editor' | 'form' | 'sent'
@@ -68,11 +57,9 @@ type PlacedItem = {
   x: number
   y: number
   scale: number
-  rotation: number // grados
-  // solo para type === 'image'
+  rotation: number
   img?: HTMLImageElement
   file?: File
-  // solo para type === 'text'
   text?: string
   color?: string
 }
@@ -91,10 +78,9 @@ const EMPTY_ORDER_FORM: OrderForm = {
   mensaje: '',
 }
 
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024 // 8 MB
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 const DEFAULT_TEXT_COLOR = '#1b130c'
 
-// Alturas de visualización en píxeles reales (nunca 'auto')
 const DISPLAY_HEIGHT_NORMAL = 420
 const DISPLAY_HEIGHT_ZOOMED = 680
 
@@ -115,9 +101,6 @@ function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-// Extensión (medio-ancho / medio-alto) del elemento, usada para el hit
-// test, el arrastre y el marco de selección. Para texto se mide con el
-// propio contexto del canvas (measureText no dibuja nada).
 function getItemHalfExtents(item: PlacedItem, ctx: CanvasRenderingContext2D | null) {
   if (item.type === 'image') {
     const size = LOGO_BASE_SIZE * item.scale
@@ -132,25 +115,32 @@ function getItemHalfExtents(item: PlacedItem, ctx: CanvasRenderingContext2D | nu
   return { halfW: width / 2, halfH: (fontSize * 1.15) / 2, fontSize }
 }
 
-export default function DesignModal({ product, acabados }: Props) {
+export default function DesignModal({
+  product,
+  acabados,
+  acabadosPremium,
+  medidas,
+  precioExtraEspatula,
+  precioExtraCola,
+}: Props) {
   const [open, setOpen] = useState(false)
   const [step, setStep] = useState<Step>('editor')
   const [zoomed, setZoomed] = useState(false)
 
-  // Canvas del diseño real (lo único que se descarga/envía)
   const designCanvasRef = useRef<HTMLCanvasElement>(null)
-  // Canvas guía superpuesto (zonas + selección) — solo visual
   const guideCanvasRef = useRef<HTMLCanvasElement>(null)
 
   const [activeZone, setActiveZone] = useState<ZoneKey>('nose')
 
-  // El esquí se ve desde el primer instante (SKI_BASE_COLOR). El acabado
-  // es opcional y, si se elige, cubre TODO el esquí como fondo.
+  // Acabado normal (gratis) y acabado premium (con coste extra) son
+  // mutuamente excluyentes: los dos pintan el fondo del esquí, pero
+  // solo el premium suma precio.
   const [finish, setFinish] = useState<Acabado | null>(null)
+  const [premiumFinish, setPremiumFinish] = useState<AcabadoPremium | null>(null)
   const [finishImgEl, setFinishImgEl] = useState<HTMLImageElement | null>(null)
 
-  // Elementos colocados por el usuario: imágenes y/o textos, cada uno
-  // con su zona.
+  const [selectedMedida, setSelectedMedida] = useState<string | null>(null)
+
   const [items, setItems] = useState<PlacedItem[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
@@ -161,8 +151,6 @@ export default function DesignModal({ product, acabados }: Props) {
   const [form, setForm] = useState<OrderForm>(EMPTY_ORDER_FORM)
   const [honeypot, setHoneypot] = useState('')
 
-  // "Ya tengo mi diseño" — si se marca y se sube un archivo, el diseño
-  // del editor queda completamente anulado: NO se envía bajo ningún caso.
   const [useOwnDesign, setUseOwnDesign] = useState(false)
   const [ownDesignFile, setOwnDesignFile] = useState<File | null>(null)
 
@@ -171,20 +159,43 @@ export default function DesignModal({ product, acabados }: Props) {
 
   const selectedItem = items.find((item) => item.id === selectedId) ?? null
 
-  // ── Tamaño de visualización EN PÍXELES EXPLÍCITOS ───────────────────
+  const activeSinGrabado = premiumFinish?.sinGrabado ?? finish?.sinGrabado ?? false
+
+  useEffect(() => {
+    if (activeSinGrabado && items.length > 0) {
+      setItems([])
+      setSelectedId(null)
+    }
+  }, [activeSinGrabado])
+
   const displayHeight = zoomed ? DISPLAY_HEIGHT_ZOOMED : DISPLAY_HEIGHT_NORMAL
   const displayWidth = Math.round((CANVAS_WIDTH / CANVAS_HEIGHT) * displayHeight)
 
-  // ── Cargar imagen del acabado elegido (global, todo el esquí) ──────
+  // ── Precio en vivo ───────────────────────────────────────────────
+  const hasEspatulaItems = items.some((item) => item.zone === 'nose')
+  const hasColaItems = items.some((item) => item.zone === 'tail')
+  const finishExtra = premiumFinish?.precioExtra ?? 0
+  const zoneExtra =
+    (hasEspatulaItems ? precioExtraEspatula : 0) + (hasColaItems ? precioExtraCola : 0)
+  const totalPrice = product.precio + finishExtra + zoneExtra
+
+  // ── Validación de selección obligatoria ───────────────────────────
+  const hasAnyAcabado = acabados.length > 0 || acabadosPremium.length > 0
+  const acabadoRequired = hasAnyAcabado && !finish && !premiumFinish
+  const medidaRequired = medidas.length > 0 && !selectedMedida
+  const canBuy = !acabadoRequired && !medidaRequired
+
+  // ── Cargar imagen de fondo: prioriza el acabado premium ────────────
+  const activeFinishImageUrl = premiumFinish?.imageUrl ?? finish?.imageUrl ?? null
+
   useEffect(() => {
-    if (!finish?.imageUrl) { setFinishImgEl(null); return }
+    if (!activeFinishImageUrl) { setFinishImgEl(null); return }
     const img = new Image()
     img.crossOrigin = 'anonymous'
     img.onload = () => setFinishImgEl(img)
-    img.src = finish.imageUrl
-  }, [finish])
+    img.src = activeFinishImageUrl
+  }, [activeFinishImageUrl])
 
-  // ── Redibujar el canvas del DISEÑO (lo que se exporta) ──────────────
   useEffect(() => {
     const canvas = designCanvasRef.current
     if (!canvas) return
@@ -194,7 +205,6 @@ export default function DesignModal({ product, acabados }: Props) {
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
     const skiPath = new Path2D(SKI_PATH)
 
-    // Base + acabado (cubre TODO el esquí), clipado a la silueta
     ctx.save()
     ctx.clip(skiPath)
     ctx.fillStyle = SKI_BASE_COLOR
@@ -205,8 +215,6 @@ export default function DesignModal({ product, acabados }: Props) {
     }
     ctx.restore()
 
-    // Elementos del usuario (imagen o texto) — clipados a la silueta Y a
-    // su zona, así nunca pueden salirse ni del esquí ni de nose/tail.
     items.forEach((item) => {
       const zone = zoneOf(item.zone)
 
@@ -233,13 +241,11 @@ export default function DesignModal({ product, acabados }: Props) {
       ctx.restore()
     })
 
-    // Contorno del esquí — sí forma parte del diseño final
     ctx.strokeStyle = 'rgba(27,19,12,0.4)'
     ctx.lineWidth = 2
     ctx.stroke(skiPath)
   }, [finishImgEl, items])
 
-  // ── Redibujar el canvas GUÍA (zonas + selección — nunca se exporta) ─
   useEffect(() => {
     const canvas = guideCanvasRef.current
     if (!canvas) return
@@ -276,7 +282,6 @@ export default function DesignModal({ product, acabados }: Props) {
     }
   }, [activeZone, items, selectedId])
 
-  // ── Selección y arrastre (ratón / táctil vía Pointer Events) ───────
   function getCanvasPos(e: React.PointerEvent<HTMLCanvasElement>) {
     const canvas = guideCanvasRef.current!
     const rect = canvas.getBoundingClientRect()
@@ -340,7 +345,6 @@ export default function DesignModal({ product, acabados }: Props) {
     setDragging(false)
   }
 
-  // ── Añadir imagen a la zona activa ──────────────────────────────
   function handleAddImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -372,7 +376,7 @@ export default function DesignModal({ product, acabados }: Props) {
           scale: 1,
           rotation: 0,
           img,
-          file, // se conserva el archivo original para enviarlo tal cual al pedido
+          file,
         },
       ])
       setSelectedId(id)
@@ -386,7 +390,6 @@ export default function DesignModal({ product, acabados }: Props) {
     e.target.value = ''
   }
 
-  // ── Añadir texto a la zona activa ───────────────────────────────
   function handleAddText() {
     const text = newText.trim()
     if (!text) return
@@ -424,7 +427,6 @@ export default function DesignModal({ product, acabados }: Props) {
     setSelectedId(null)
   }
 
-  // ── Guardar diseño en el ordenador (solo el canvas del diseño) ─────
   function handleDownload() {
     const canvas = designCanvasRef.current
     if (!canvas) return
@@ -439,7 +441,6 @@ export default function DesignModal({ product, acabados }: Props) {
     }, 'image/png')
   }
 
-  // ── Formulario de compra ────────────────────────────────────────
   function handleFormChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
@@ -462,10 +463,6 @@ export default function DesignModal({ product, acabados }: Props) {
     setOwnDesignFile(file)
   }
 
-  // Sube cada imagen ORIGINAL colocada en el editor (sin recomprimir),
-  // para que el diseñador trabaje con la fuente real, no solo con el
-  // PNG compuesto del canvas. Solo se llama cuando se usa el editor
-  // (nunca cuando el cliente sube su propio diseño ya terminado).
   async function uploadOriginalImages(): Promise<string[]> {
     const imageItems = items.filter(
       (item): item is PlacedItem & { file: File } => item.type === 'image' && !!item.file
@@ -494,7 +491,6 @@ export default function DesignModal({ product, acabados }: Props) {
   async function handleSubmitOrder(e: React.FormEvent) {
     e.preventDefault()
 
-    // ── SEGURIDAD: honeypot ──────────────────────────────────────
     if (honeypot) {
       setStep('sent')
       return
@@ -507,9 +503,6 @@ export default function DesignModal({ product, acabados }: Props) {
     let contentType = 'image/png'
     let originalUrls: string[] = []
 
-    // Si el usuario marcó "ya tengo mi diseño" Y subió un archivo,
-    // el diseño del editor queda TOTALMENTE anulado: ni se lee el
-    // canvas ni se suben imágenes originales del editor.
     if (useOwnDesign && ownDesignFile) {
       blob = ownDesignFile
       contentType = ownDesignFile.type || 'image/png'
@@ -550,17 +543,40 @@ export default function DesignModal({ product, acabados }: Props) {
       .from('design-images')
       .getPublicUrl(fileName)
 
+    // Resumen legible para el admin, además de las columnas estructuradas
+    const summaryParts: string[] = []
+    if (finish) summaryParts.push(`Acabado: ${finish.nombre}`)
+    if (premiumFinish) {
+      summaryParts.push(
+        `Acabado premium: ${premiumFinish.nombre} (+${premiumFinish.precioExtra.toFixed(2)} €)`
+      )
+    }
+    if (selectedMedida) summaryParts.push(`Medida: ${selectedMedida} m`)
+    if (hasEspatulaItems) {
+      summaryParts.push(`Espátula personalizada (+${precioExtraEspatula.toFixed(2)} €)`)
+    }
+    if (hasColaItems) {
+      summaryParts.push(`Cola personalizada (+${precioExtraCola.toFixed(2)} €)`)
+    }
+    summaryParts.push(`Precio total: ${totalPrice.toFixed(2)} €`)
+
+    const mensajeFinal = `${form.mensaje || 'Sin notas adicionales.'}\n\n— Resumen del pedido —\n${summaryParts.join('\n')}`
+
     const { error: insertError } = await supabase.from('message').insert({
       nombre: form.nombre,
       email: form.email,
       telefono: form.telefono || null,
       asunto: `Diseño personalizado — ${product.nombre}`,
-      mensaje: form.mensaje || 'Sin notas adicionales.',
+      mensaje: mensajeFinal,
       estado: 'nuevo',
       producto_id: product.id,
       tipo: 'diseno',
       imagen_diseno_url: publicUrlData.publicUrl,
       imagenes_originales_urls: originalUrls,
+      acabado_id: finish?.id ?? null,
+      acabado_premium_id: premiumFinish?.id ?? null,
+      medida_seleccionada: selectedMedida,
+      precio_final: totalPrice,
     })
 
     setSending(false)
@@ -620,7 +636,6 @@ export default function DesignModal({ product, acabados }: Props) {
 
             {step !== 'sent' && (
               <div className="grid gap-8 sm:grid-cols-[auto_1fr]">
-                {/* CANVAS — fijo mientras se hace scroll en los controles */}
                 <div className="flex flex-col items-center gap-3 sm:sticky sm:top-0 sm:self-start">
                   <div
                     style={{
@@ -662,9 +677,8 @@ export default function DesignModal({ product, acabados }: Props) {
                   </p>
                 </div>
 
-                {/* CONTROLES */}
                 <div className="space-y-6">
-                  {/* Acabado global del esquí */}
+                  {/* Acabado normal */}
                   <div>
                     <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
                       Acabado del esquí
@@ -675,7 +689,10 @@ export default function DesignModal({ product, acabados }: Props) {
                           key={acabado.id}
                           type="button"
                           title={acabado.nombre}
-                          onClick={() => setFinish(acabado)}
+                          onClick={() => {
+                            setFinish(acabado)
+                            setPremiumFinish(null)
+                          }}
                           className={`relative aspect-square overflow-hidden rounded-md border-2 transition ${
                             finish?.id === acabado.id ? 'border-[var(--accent)]' : 'border-[var(--border)]'
                           }`}
@@ -693,80 +710,162 @@ export default function DesignModal({ product, acabados }: Props) {
                     </p>
                   </div>
 
+                  {/* Acabado premium */}
+                  {acabadosPremium.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
+                        Acabados premium
+                      </p>
+                      <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+                        {acabadosPremium.map((acabado) => (
+                          <button
+                            key={acabado.id}
+                            type="button"
+                            title={`${acabado.nombre} (+${acabado.precioExtra.toFixed(2)} €)`}
+                            onClick={() => {
+                              setPremiumFinish(acabado)
+                              setFinish(null)
+                            }}
+                            className={`relative aspect-square overflow-hidden rounded-md border-2 transition ${
+                              premiumFinish?.id === acabado.id ? 'border-[var(--accent)]' : 'border-[var(--border)]'
+                            }`}
+                            style={{
+                              backgroundImage: acabado.imageUrl ? `url(${acabado.imageUrl})` : undefined,
+                              backgroundColor: acabado.imageUrl ? undefined : SKI_BASE_COLOR,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                            }}
+                          >
+                            <span className="absolute inset-x-0 bottom-0 bg-black/60 px-1 py-0.5 text-center text-[10px] font-medium text-white">
+                              +{acabado.precioExtra.toFixed(0)}€
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="mt-1.5 text-xs text-[var(--text-soft)]">
+                        Suma su precio extra al total. Sustituye al acabado normal.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Medida */}
+                  {medidas.length > 0 && (
+                    <div>
+                      <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
+                        Medida
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {medidas.map((medida) => (
+                          <button
+                            key={medida}
+                            type="button"
+                            onClick={() => setSelectedMedida(medida)}
+                            className={`rounded-lg border px-4 py-2 text-sm transition ${
+                              selectedMedida === medida
+                                ? 'border-[var(--accent)] text-[var(--foreground)]'
+                                : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-hover)]'
+                            }`}
+                          >
+                            {medida} m
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Selector de zona */}
-                  <div>
-                    <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
-                      Añadir contenido en
-                    </p>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setActiveZone('nose')}
-                        className={`flex-1 rounded-lg border px-4 py-2 text-sm transition ${
-                          activeZone === 'nose'
-                            ? 'border-[var(--accent)] text-[var(--foreground)]'
-                            : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-hover)]'
-                        }`}
-                      >
-                        Zona Nose
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setActiveZone('tail')}
-                        className={`flex-1 rounded-lg border px-4 py-2 text-sm transition ${
-                          activeZone === 'tail'
-                            ? 'border-[var(--accent)] text-[var(--foreground)]'
-                            : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-hover)]'
-                        }`}
-                      >
-                        Zona Tail
-                      </button>
-                    </div>
-                  </div>
+                  {!activeSinGrabado && (
+                    <>
+                      {/* Selector de zona */}
+                      <div>
+                        <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
+                          Añadir contenido en
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setActiveZone('nose')}
+                            className={`flex-1 rounded-lg border px-4 py-2 text-sm transition ${
+                              activeZone === 'nose'
+                                ? 'border-[var(--accent)] text-[var(--foreground)]'
+                                : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-hover)]'
+                            }`}
+                          >
+                            Zona Espátula
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveZone('tail')}
+                            className={`flex-1 rounded-lg border px-4 py-2 text-sm transition ${
+                              activeZone === 'tail'
+                                ? 'border-[var(--accent)] text-[var(--foreground)]'
+                                : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--border-hover)]'
+                            }`}
+                          >
+                            Zona Cola
+                          </button>
+                        </div>
+                        {(precioExtraEspatula > 0 || precioExtraCola > 0) && (
+                          <p className="mt-1.5 text-xs text-[var(--text-soft)]">
+                            {precioExtraEspatula > 0 &&
+                              `Espátula personalizada: +${precioExtraEspatula.toFixed(2)} €. `}
+                            {precioExtraCola > 0 &&
+                              `Cola personalizada: +${precioExtraCola.toFixed(2)} €.`}
+                          </p>
+                        )}
+                      </div>
 
-                  {/* Añadir imagen */}
-                  <div>
-                    <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
-                      Añadir imagen ({activeZone === 'nose' ? 'Nose' : 'Tail'})
-                    </p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAddImage}
-                      className="block w-full text-xs text-[var(--text-muted)] file:mr-3 file:rounded-lg file:border file:border-[var(--border)] file:bg-transparent file:px-3 file:py-2 file:text-xs file:text-[var(--foreground)]"
-                    />
-                    <p className="mt-1.5 text-xs text-[var(--text-soft)]">
-                      Recomendamos imágenes tipo logo en PNG con fondo transparente. Fotos muy
-                      saturadas o con mucho detalle puede que no queden bien impresas. El diseño
-                      se envía a revisión: si consideramos que una imagen no va a quedar bien, la
-                      anularemos y te lo haremos saber.
-                    </p>
-                  </div>
+                      {/* Añadir imagen */}
+                      <div>
+                        <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
+                          Añadir imagen ({activeZone === 'nose' ? 'Espátula' : 'Cola'})
+                        </p>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAddImage}
+                          className="block w-full text-xs text-[var(--text-muted)] file:mr-3 file:rounded-lg file:border file:border-[var(--border)] file:bg-transparent file:px-3 file:py-2 file:text-xs file:text-[var(--foreground)]"
+                        />
+                        <p className="mt-1.5 text-xs text-[var(--text-soft)]">
+                          Recomendamos imágenes tipo logo en PNG con fondo transparente. Fotos muy
+                          saturadas o con mucho detalle puede que no queden bien impresas. El diseño
+                          se envía a revisión: si consideramos que una imagen no va a quedar bien, la
+                          anularemos y te lo haremos saber.
+                        </p>
+                      </div>
 
-                  {/* Añadir texto */}
-                  <div>
-                    <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
-                      Añadir texto ({activeZone === 'nose' ? 'Nose' : 'Tail'})
+                      {/* Añadir texto */}
+                      <div>
+                        <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[var(--accent)]">
+                          Añadir texto ({activeZone === 'nose' ? 'Espátula' : 'Cola'})
+                        </p>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={newText}
+                            onChange={(e) => setNewText(e.target.value)}
+                            placeholder="Escribe tu texto"
+                            maxLength={30}
+                            className="w-full rounded-lg border border-[var(--border-hover)] bg-transparent px-3 py-2 text-sm text-[var(--foreground)] outline-none focus:border-[var(--accent)]"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddText}
+                            disabled={!newText.trim()}
+                            className="shrink-0 rounded-lg border border-[var(--border-hover)] px-4 py-2 text-sm text-[var(--foreground)] transition hover:border-[var(--accent)] disabled:opacity-40"
+                          >
+                            Añadir
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {activeSinGrabado && (
+                    <p className="rounded-lg border border-dashed border-[var(--border-hover)] p-4 text-xs text-[var(--text-soft)]">
+                      Este acabado no admite personalización en espátula ni cola.
                     </p>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={newText}
-                        onChange={(e) => setNewText(e.target.value)}
-                        placeholder="Escribe tu texto"
-                        maxLength={30}
-                        className="w-full rounded-lg border border-[var(--border-hover)] bg-transparent px-3 py-2 text-sm text-[var(--foreground)] outline-none focus:border-[var(--accent)]"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddText}
-                        disabled={!newText.trim()}
-                        className="shrink-0 rounded-lg border border-[var(--border-hover)] px-4 py-2 text-sm text-[var(--foreground)] transition hover:border-[var(--accent)] disabled:opacity-40"
-                      >
-                        Añadir
-                      </button>
-                    </div>
-                  </div>
+                  )}
 
                   {/* Elemento seleccionado */}
                   {selectedItem && (
@@ -845,13 +944,29 @@ export default function DesignModal({ product, acabados }: Props) {
 
                   {/* Precio + acciones */}
                   <div className="border-t border-[var(--border)] pt-6">
-                    <p className="mb-4 text-xl font-light text-[var(--foreground)]">
-                      {product.precio.toLocaleString('es-ES', {
+                    <p className="mb-1 text-xl font-light text-[var(--foreground)]">
+                      {totalPrice.toLocaleString('es-ES', {
                         style: 'currency',
                         currency: 'EUR',
                       })}
                     </p>
-
+                    {(finishExtra > 0 || zoneExtra > 0) && (
+                      <p className="mb-4 text-xs text-[var(--text-soft)]">
+                        Base {product.precio.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                        {finishExtra > 0 && ` + acabado premium ${finishExtra.toFixed(2)} €`}
+                        {zoneExtra > 0 && ` + personalización ${zoneExtra.toFixed(2)} €`}
+                      </p>
+                    )}
+                    {finishExtra === 0 && zoneExtra === 0 && <div className="mb-4" />}
+                    
+                    {!canBuy && (
+                      <p className="mb-3 text-xs text-amber-400">
+                        {acabadoRequired && medidaRequired && 'Selecciona un acabado y una medida arriba para poder continuar con la compra.'}
+                        {acabadoRequired && !medidaRequired && 'Selecciona un acabado arriba para poder continuar con la compra.'}
+                        {!acabadoRequired && medidaRequired && 'Selecciona una medida arriba para poder continuar con la compra.'}
+                      </p>
+                    )}
+                    
                     <div className="flex flex-col gap-2 sm:flex-row">
                       <button
                         type="button"
@@ -863,7 +978,9 @@ export default function DesignModal({ product, acabados }: Props) {
                       <button
                         type="button"
                         onClick={() => setStep('form')}
-                        className="flex-1 rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--surface)] transition hover:bg-[var(--accent-hover)]"
+                        disabled={!canBuy}
+                        title={!canBuy ? 'Selecciona acabado y medida antes de continuar' : undefined}
+                        className="flex-1 rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--surface)] transition hover:bg-[var(--accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         Comprar
                       </button>
@@ -915,10 +1032,11 @@ export default function DesignModal({ product, acabados }: Props) {
                     </div>
 
                     <div>
-                      <label className="mb-1.5 block text-sm text-[var(--accent)]">Teléfono</label>
+                      <label className="mb-1.5 block text-sm text-[var(--accent)]">Teléfono*</label>
                       <input
                         name="telefono"
                         type="tel"
+                        required
                         value={form.telefono}
                         onChange={handleFormChange}
                         placeholder="+34 600 000 000"
@@ -938,7 +1056,6 @@ export default function DesignModal({ product, acabados }: Props) {
                       />
                     </div>
 
-                    {/* Ya tengo mi diseño */}
                     <div className="rounded-lg border border-dashed border-[var(--border-hover)] p-4">
                       <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
                         <input
@@ -977,7 +1094,6 @@ export default function DesignModal({ product, acabados }: Props) {
                       </p>
                     </div>
 
-                    {/* ── SEGURIDAD: honeypot ── */}
                     <input
                       type="text"
                       name="website"
@@ -1002,21 +1118,36 @@ export default function DesignModal({ product, acabados }: Props) {
                     )}
                   </div>
 
-                  <div className="mt-6 flex gap-3 border-t border-[var(--border)] pt-5">
-                    <button
-                      type="button"
-                      onClick={() => setStep('editor')}
-                      className="flex-1 rounded-lg border border-[var(--border-hover)] px-4 py-3 text-sm text-[var(--text-muted)] transition hover:text-[var(--foreground)]"
-                    >
-                      Volver
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={sending || (useOwnDesign && !ownDesignFile)}
-                      className="flex-1 rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--surface)] transition hover:bg-[var(--accent-hover)] disabled:opacity-50"
-                    >
-                      {sending ? 'Enviando...' : 'Enviar pedido'}
-                    </button>
+                  <div className="mt-6 border-t border-[var(--border)] pt-5">
+                    <div className="mb-3 flex items-center justify-between">
+                      <span className="text-sm text-[var(--text-muted)]">Precio total</span>
+                      <span className="text-lg font-medium text-[var(--foreground)]">
+                        {totalPrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
+                      </span>
+                    </div>
+
+                    <p className="mb-4 text-xs text-[var(--text-soft)]">
+                      No se paga en este momento. Revisaremos tu pedido y nos pondremos en contacto
+                      contigo para definir los últimos detalles y comenzar la elaboración; el pago
+                      se realiza en ese momento.
+                    </p>
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setStep('editor')}
+                        className="flex-1 rounded-lg border border-[var(--border-hover)] px-4 py-3 text-sm text-[var(--text-muted)] transition hover:text-[var(--foreground)]"
+                      >
+                        Volver
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={sending || (useOwnDesign && !ownDesignFile)}
+                        className="flex-1 rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--surface)] transition hover:bg-[var(--accent-hover)] disabled:opacity-50"
+                      >
+                        {sending ? 'Enviando...' : 'Enviar pedido'}
+                      </button>
+                    </div>
                   </div>
                 </form>
               </div>

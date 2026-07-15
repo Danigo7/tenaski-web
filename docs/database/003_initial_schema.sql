@@ -597,3 +597,63 @@ insert into public.content_block (seccion, data) values
     'descripcion', 'Cada esquí puede personalizarse con distintos acabados de madera.'
   ))
 on conflict (seccion) do nothing;
+
+-- =========================================================
+-- 009_acabados_premium.sql
+-- Acabados Premium: reutiliza la tabla `acabado` con precio extra
+-- =========================================================
+
+alter table public.acabado
+  add column if not exists es_premium boolean not null default false,
+  add column if not exists precio_extra numeric(10,2);
+
+alter table public.acabado
+  add constraint acabado_precio_extra_check
+  check (
+    (es_premium = false and precio_extra is null)
+    or (es_premium = true and precio_extra is not null and precio_extra >= 0)
+  );
+
+insert into public.content_block (seccion, data) values
+  ('acabados_premium_home', jsonb_build_object(
+    'activo', true,
+    'eyebrow', 'Acabados premium',
+    'descripcion', 'Acabados exclusivos con un coste adicional sobre el precio base.'
+  ))
+on conflict (seccion) do nothing;
+
+-- =========================================================
+-- 010_product_extras_and_order_details.sql
+-- Medidas + precios extra de zona en product
+-- Trazabilidad de selección en message (pedidos)
+-- =========================================================
+
+alter table public.product
+  add column if not exists medidas text[] not null default '{}',
+  add column if not exists precio_extra_espatula numeric(10,2) not null default 0,
+  add column if not exists precio_extra_cola numeric(10,2) not null default 0;
+
+alter table public.product
+  add constraint product_medidas_max3
+  check (array_length(medidas, 1) is null or array_length(medidas, 1) <= 3);
+
+-- Guardamos qué eligió el cliente en cada pedido de diseño,
+-- para que el admin lo vea sin tener que leer el PNG.
+alter table public.message
+  add column if not exists acabado_id uuid references public.acabado(id) on delete set null,
+  add column if not exists acabado_premium_id uuid references public.acabado(id) on delete set null,
+  add column if not exists medida_seleccionada text,
+  add column if not exists precio_final numeric(10,2);
+
+  -- =========================================================
+-- 011_sin_grabado_y_medidas.sql
+-- Acabados: flag "sin grabado" (oculta espátula/cola en el diseñador)
+-- Product: permitir más de 3 medidas
+-- =========================================================
+
+alter table public.acabado
+  add column if not exists sin_grabado boolean not null default false;
+
+-- Quitamos el límite de 3 medidas: ahora se pueden añadir más desde el admin
+alter table public.product
+  drop constraint if exists product_medidas_max3;

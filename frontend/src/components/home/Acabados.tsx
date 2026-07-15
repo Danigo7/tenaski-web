@@ -5,6 +5,7 @@ type Acabado = {
   nombre: string
   descripcion: string | null
   imageUrl: string | null
+  precioExtra?: number | null
 }
 
 type Props = {
@@ -49,6 +50,11 @@ export default function Acabados({ eyebrow, description, acabados }: Props) {
                   {acabado.descripcion && (
                     <p className="mt-0.5 line-clamp-2 text-xs text-[var(--text-muted)]">
                       {acabado.descripcion}
+                    </p>
+                  )}
+                  {typeof acabado.precioExtra === 'number' && (
+                    <p className="mt-0.5 text-xs font-semibold text-[var(--accent)]">
+                      +{acabado.precioExtra.toFixed(2)} €
                     </p>
                   )}
                 </div>

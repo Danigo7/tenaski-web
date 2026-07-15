@@ -17,10 +17,11 @@ type ImageRelation =
   | null
   | undefined
 
-type AcabadoRow = {
+type AcabadoPremiumRow = {
   id: string
   nombre: string
   descripcion: string | null
+  precio_extra: number | null
   imagen_id: string | null
   image: ImageRelation
   sin_grabado: boolean
@@ -38,7 +39,7 @@ type SectionBlock = {
 
 type Props = {
   block: SectionBlock
-  acabados: AcabadoRow[]
+  acabados: AcabadoPremiumRow[]
 }
 
 function getImage(img: ImageRelation): string | null {
@@ -47,20 +48,21 @@ function getImage(img: ImageRelation): string | null {
   return img.ruta_storage ?? null
 }
 
-export default function AcabadosContentForm({ block, acabados }: Props) {
+export default function AcabadosPremiumContentForm({ block, acabados }: Props) {
   const [activo, setActivo] = useState(block?.data?.activo ?? true)
-  const [eyebrow, setEyebrow] = useState(block?.data?.eyebrow ?? 'Acabados')
+  const [eyebrow, setEyebrow] = useState(block?.data?.eyebrow ?? 'Acabados premium')
   const [descripcion, setDescripcion] = useState(
     block?.data?.descripcion ??
-      'Cada esquí puede personalizarse con distintos acabados de madera.'
+      'Acabados exclusivos con un coste adicional sobre el precio base.'
   )
 
   const [isPending, startTransition] = useTransition()
   const [savedMessage, setSavedMessage] = useState(false)
 
-  // ── Nuevo acabado ──────────────────────────────────────────
+  // ── Nuevo acabado premium ──────────────────────────────────
   const [nuevoNombre, setNuevoNombre] = useState('')
   const [nuevaDescripcion, setNuevaDescripcion] = useState('')
+  const [nuevoPrecio, setNuevoPrecio] = useState('')
   const [nuevaImagenId, setNuevaImagenId] = useState<string | null>(null)
   const [nuevaImagenPreview, setNuevaImagenPreview] = useState<string | null>(null)
   const [nuevoSinGrabado, setNuevoSinGrabado] = useState(false)
@@ -74,7 +76,7 @@ export default function AcabadosContentForm({ block, acabados }: Props) {
 
   function handleSaveSection() {
     startTransition(async () => {
-      await updateContentBlock('acabados_home', {
+      await updateContentBlock('acabados_premium_home', {
         activo,
         eyebrow,
         descripcion,
@@ -85,7 +87,8 @@ export default function AcabadosContentForm({ block, acabados }: Props) {
   }
 
   function handleAddAcabado() {
-    if (!nuevoNombre || !nuevaImagenId) return
+    const precio = parseFloat(nuevoPrecio)
+    if (!nuevoNombre || !nuevaImagenId || Number.isNaN(precio) || precio < 0) return
 
     startCreating(async () => {
       await createAcabado(
@@ -93,12 +96,13 @@ export default function AcabadosContentForm({ block, acabados }: Props) {
         nuevaDescripcion,
         nuevaImagenId,
         acabados.length,
-        false,
-        null,
+        true,
+        precio,
         nuevoSinGrabado
       )
       setNuevoNombre('')
       setNuevaDescripcion('')
+      setNuevoPrecio('')
       setNuevaImagenId(null)
       setNuevaImagenPreview(null)
       setNuevoSinGrabado(false)
@@ -125,7 +129,7 @@ export default function AcabadosContentForm({ block, acabados }: Props) {
     <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold">Acabados</h2>
+          <h2 className="text-xl font-semibold">Acabados premium</h2>
           <p className="mt-1 text-sm text-zinc-400">
             Activa o desactiva la sección y edita su texto introductorio.
           </p>
@@ -175,10 +179,10 @@ export default function AcabadosContentForm({ block, acabados }: Props) {
         )}
       </div>
 
-      {/* ── LISTA DE ACABADOS ─────────────────────────────────────── */}
+      {/* ── LISTA DE ACABADOS PREMIUM ─────────────────────────────── */}
       <div className="mt-10 border-t border-zinc-800 pt-8">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
-          Acabados ({acabados.length})
+          Acabados premium ({acabados.length})
         </h3>
         <p className="mt-1 text-xs text-zinc-500">
           "Sin grabado" oculta las opciones de añadir imagen/texto en espátula y
@@ -214,6 +218,11 @@ export default function AcabadosContentForm({ block, acabados }: Props) {
                   {acabado.descripcion && (
                     <p className="truncate text-xs text-zinc-500">{acabado.descripcion}</p>
                   )}
+                  {typeof acabado.precio_extra === 'number' && (
+                    <p className="text-xs font-semibold text-[#C4A882]">
+                      +{acabado.precio_extra.toFixed(2)} €
+                    </p>
+                  )}
                 </div>
 
                 <button
@@ -246,15 +255,15 @@ export default function AcabadosContentForm({ block, acabados }: Props) {
           ))}
 
           {acabados.length === 0 && (
-            <p className="text-sm text-zinc-500">Todavía no hay acabados añadidos.</p>
+            <p className="text-sm text-zinc-500">Todavía no hay acabados premium añadidos.</p>
           )}
         </div>
       </div>
 
-      {/* ── AÑADIR NUEVO ACABADO ──────────────────────────────────── */}
+      {/* ── AÑADIR NUEVO ACABADO PREMIUM ──────────────────────────── */}
       <div className="mt-8 rounded-lg border border-dashed border-zinc-700 p-5">
         <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-400">
-          Añadir acabado
+          Añadir acabado premium
         </h3>
 
         <div className="mt-4 grid gap-5 md:grid-cols-2">
@@ -267,7 +276,7 @@ export default function AcabadosContentForm({ block, acabados }: Props) {
                 type="text"
                 value={nuevoNombre}
                 onChange={(e) => setNuevoNombre(e.target.value)}
-                placeholder="Ej. Roble natural"
+                placeholder="Ej. Nogal premium"
                 className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-[#E8E4DC] outline-none focus:border-[#C4A882]"
               />
             </div>
@@ -280,7 +289,22 @@ export default function AcabadosContentForm({ block, acabados }: Props) {
                 type="text"
                 value={nuevaDescripcion}
                 onChange={(e) => setNuevaDescripcion(e.target.value)}
-                placeholder="Ej. Veta visible, tacto cálido"
+                placeholder="Ej. Veta oscura, acabado brillante"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-[#E8E4DC] outline-none focus:border-[#C4A882]"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-zinc-300">
+                Precio extra (€)
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={nuevoPrecio}
+                onChange={(e) => setNuevoPrecio(e.target.value)}
+                placeholder="Ej. 45.00"
                 className="w-full rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2.5 text-sm text-[#E8E4DC] outline-none focus:border-[#C4A882]"
               />
             </div>
@@ -305,7 +329,7 @@ export default function AcabadosContentForm({ block, acabados }: Props) {
               {nuevaImagenPreview ? (
                 <Image
                   src={nuevaImagenPreview}
-                  alt="Nuevo acabado"
+                  alt="Nuevo acabado premium"
                   fill
                   className="object-cover"
                 />
@@ -328,10 +352,16 @@ export default function AcabadosContentForm({ block, acabados }: Props) {
         <button
           type="button"
           onClick={handleAddAcabado}
-          disabled={isCreating || !nuevoNombre || !nuevaImagenId}
+          disabled={
+            isCreating ||
+            !nuevoNombre ||
+            !nuevaImagenId ||
+            nuevoPrecio === '' ||
+            Number.isNaN(parseFloat(nuevoPrecio))
+          }
           className="mt-5 rounded-lg bg-[#C4A882] px-6 py-2.5 text-sm font-semibold text-[#0F0F0F] transition hover:opacity-90 disabled:opacity-50"
         >
-          {isCreating ? 'Añadiendo...' : 'Añadir acabado'}
+          {isCreating ? 'Añadiendo...' : 'Añadir acabado premium'}
         </button>
       </div>
     </div>

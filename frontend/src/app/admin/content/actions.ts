@@ -1,21 +1,9 @@
 'use server'
-
 // app/admin/content/actions.ts
-//
-// Estas funciones son el "puente" entre el formulario del admin y la base de datos.
-// Se ejecutan SIEMPRE en el servidor (por eso 'use server' arriba del todo),
-// nunca en el navegador del usuario, así que pueden hablar con Supabase de forma segura.
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 
-/**
- * Actualiza un bloque de contenido (texto + imagen).
- *
- * @param seccion   La clave del bloque a editar, ej: 'hero_global'
- * @param data      Objeto con los campos de texto, ej: { eyebrow, titulo, descripcion }
- * @param imagenId  El id de la imagen seleccionada de la librería (puede ser null si no cambia)
- */
 export async function updateContentBlock(
   seccion: string,
   data: Record<string, any>,
@@ -72,12 +60,19 @@ export async function updateContentBlock(
 
 /**
  * Crea un nuevo acabado (imagen + nombre + descripción breve).
+ * Si esPremium es true, se guarda con su precio extra.
+ * sinGrabado: por defecto false → el cliente SÍ puede personalizar
+ * espátula/cola. Si se marca true, el DesignModal ocultará esas opciones
+ * cuando el cliente elija este acabado.
  */
 export async function createAcabado(
   nombre: string,
   descripcion: string,
   imagenId: string,
-  orden: number
+  orden: number,
+  esPremium: boolean = false,
+  precioExtra: number | null = null,
+  sinGrabado: boolean = false
 ) {
   const supabase = await createClient()
 
@@ -86,6 +81,9 @@ export async function createAcabado(
     descripcion,
     imagen_id: imagenId,
     orden,
+    es_premium: esPremium,
+    precio_extra: esPremium ? precioExtra : null,
+    sin_grabado: sinGrabado,
   })
 
   if (error) {
@@ -118,6 +116,31 @@ export async function updateAcabado(
 
   if (error) {
     console.error('Error actualizando acabado:', error)
+    throw new Error(error.message)
+  }
+
+  revalidatePath('/admin/content')
+  revalidatePath('/')
+}
+
+/**
+ * Activa/desactiva el flag "sin grabado" de un acabado.
+ * Cuando está activo, ese acabado no permite añadir imágenes/texto
+ * en espátula o cola dentro del DesignModal.
+ */
+export async function toggleAcabadoSinGrabado(id: string, sinGrabado: boolean) {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('acabado')
+    .update({
+      sin_grabado: sinGrabado,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error actualizando sin_grabado:', error)
     throw new Error(error.message)
   }
 

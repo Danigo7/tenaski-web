@@ -31,7 +31,7 @@ export type Zone = { x: number; y: number; width: number; height: number }
 
 // Zonas de trabajo adaptadas a la nueva geometría estilizada del esquí
 export const NOSE_ZONE: Zone = { x: 58, y: 60, width: 104, height: 220 }
-export const TAIL_ZONE: Zone = { x: 60, y: 620, width: 100, height: 220 }
+export const TAIL_ZONE: Zone = { x: 60, y: 620, width: 104, height: 220 }
 
 // Tamaño base (a escala 1) de cualquier imagen/logo colocado por el usuario
 export const LOGO_BASE_SIZE = 60
@@ -41,3 +41,9 @@ export const TEXT_BASE_FONT_SIZE = 24
 
 // Color base del esquí — tono madera premium/crema texturizado
 export const SKI_BASE_COLOR = '#e8ded0'
+
+// Logo de marca que se muestra sobre la espátula al elegir un acabado
+export const BRAND_LOGO_URL = '/img/logoo.png'
+export const BRAND_LOGO_X = 110   // centro horizontal (ajústalo)
+export const BRAND_LOGO_Y = 110   // posición vertical, encima del nose
+export const BRAND_LOGO_SIZE = 60 // tamaño en px dentro del canvas

@@ -12,6 +12,10 @@ import {
   LOGO_BASE_SIZE,
   TEXT_BASE_FONT_SIZE,
   SKI_BASE_COLOR,
+  BRAND_LOGO_URL,
+  BRAND_LOGO_X,
+  BRAND_LOGO_Y,
+  BRAND_LOGO_SIZE,
   type Zone,
 } from '@/lib/skiShape'
 
@@ -102,17 +106,37 @@ function makeId() {
 }
 
 function getItemHalfExtents(item: PlacedItem, ctx: CanvasRenderingContext2D | null) {
+  // Extensión local (sin rotar) — la usamos para dibujar el recuadro
+  // de selección, que ya se pinta dentro de un ctx.rotate().
+  let localHalfW: number
+  let localHalfH: number
+  let fontSize = 0
+
   if (item.type === 'image') {
     const size = LOGO_BASE_SIZE * item.scale
-    return { halfW: size / 2, halfH: size / 2, fontSize: 0 }
+    localHalfW = size / 2
+    localHalfH = size / 2
+  } else {
+    fontSize = TEXT_BASE_FONT_SIZE * item.scale
+    let width = fontSize * (item.text?.length ?? 1) * 0.55
+    if (ctx) {
+      ctx.font = `600 ${fontSize}px sans-serif`
+      width = ctx.measureText(item.text || ' ').width
+    }
+    localHalfW = width / 2
+    localHalfH = (fontSize * 1.15) / 2
   }
-  const fontSize = TEXT_BASE_FONT_SIZE * item.scale
-  let width = fontSize * (item.text?.length ?? 1) * 0.55
-  if (ctx) {
-    ctx.font = `600 ${fontSize}px sans-serif`
-    width = ctx.measureText(item.text || ' ').width
-  }
-  return { halfW: width / 2, halfH: (fontSize * 1.15) / 2, fontSize }
+
+  // Extensión real en pantalla (AABB) una vez aplicada la rotación.
+  // Es la que hay que usar para el hit-test y para limitar el arrastre,
+  // porque esos cálculos se hacen en coordenadas del canvas sin rotar.
+  const rad = (item.rotation * Math.PI) / 180
+  const cos = Math.abs(Math.cos(rad))
+  const sin = Math.abs(Math.sin(rad))
+  const halfW = localHalfW * cos + localHalfH * sin
+  const halfH = localHalfW * sin + localHalfH * cos
+
+  return { halfW, halfH, localHalfW, localHalfH, fontSize }
 }
 
 export default function DesignModal({
@@ -138,6 +162,7 @@ export default function DesignModal({
   const [finish, setFinish] = useState<Acabado | null>(null)
   const [premiumFinish, setPremiumFinish] = useState<AcabadoPremium | null>(null)
   const [finishImgEl, setFinishImgEl] = useState<HTMLImageElement | null>(null)
+  const [brandLogoEl, setBrandLogoEl] = useState<HTMLImageElement | null>(null)
 
   const [selectedMedida, setSelectedMedida] = useState<string | null>(null)
 
@@ -196,6 +221,13 @@ export default function DesignModal({
     img.src = activeFinishImageUrl
   }, [activeFinishImageUrl])
 
+  // Carga el logo de marca una sola vez al montar el componente
+  useEffect(() => {
+    const img = new Image()
+    img.onload = () => setBrandLogoEl(img)
+    img.src = BRAND_LOGO_URL
+  }, [])
+
   useEffect(() => {
     const canvas = designCanvasRef.current
     if (!canvas) return
@@ -213,6 +245,19 @@ export default function DesignModal({
     if (finishImgEl) {
       drawImageCover(ctx, finishImgEl, { x: 0, y: 0, width: CANVAS_WIDTH, height: CANVAS_HEIGHT })
     }
+
+    // Logo de marca — solo si hay un acabado seleccionado
+    const hasFinishSelected = !!(finish || premiumFinish)
+    if (hasFinishSelected && brandLogoEl) {
+      ctx.drawImage(
+        brandLogoEl,
+        BRAND_LOGO_X - BRAND_LOGO_SIZE / 2,
+        BRAND_LOGO_Y - BRAND_LOGO_SIZE / 2,
+        BRAND_LOGO_SIZE,
+        BRAND_LOGO_SIZE
+      )
+    }
+
     ctx.restore()
 
     items.forEach((item) => {
@@ -244,7 +289,7 @@ export default function DesignModal({
     ctx.strokeStyle = 'rgba(27,19,12,0.4)'
     ctx.lineWidth = 2
     ctx.stroke(skiPath)
-  }, [finishImgEl, items])
+  }, [finishImgEl, brandLogoEl, finish, premiumFinish, items])
 
   useEffect(() => {
     const canvas = guideCanvasRef.current
@@ -269,14 +314,14 @@ export default function DesignModal({
     if (selectedId) {
       const item = items.find((i) => i.id === selectedId)
       if (item) {
-        const { halfW, halfH } = getItemHalfExtents(item, ctx)
+        const { localHalfW, localHalfH } = getItemHalfExtents(item, ctx)
         ctx.save()
         ctx.translate(item.x, item.y)
         ctx.rotate((item.rotation * Math.PI) / 180)
         ctx.strokeStyle = 'rgba(255,255,255,0.9)'
         ctx.lineWidth = 1.5
         ctx.setLineDash([4, 3])
-        ctx.strokeRect(-halfW, -halfH, halfW * 2, halfH * 2)
+        ctx.strokeRect(-localHalfW, -localHalfH, localHalfW * 2, localHalfH * 2)
         ctx.restore()
       }
     }
@@ -355,7 +400,7 @@ export default function DesignModal({
       return
     }
     if (file.size > MAX_UPLOAD_BYTES) {
-      alert('La imagen es demasiado grande. El tamaño máximo es 8MB.')
+      alert('La imagen es demasiado grande. El tamaño máximo es 2MB.')
       e.target.value = ''
       return
     }
@@ -455,7 +500,7 @@ export default function DesignModal({
       return
     }
     if (file.size > MAX_UPLOAD_BYTES) {
-      alert('La imagen es demasiado grande. El tamaño máximo es 8MB.')
+      alert('La imagen es demasiado grande. El tamaño máximo es 2MB.')
       e.target.value = ''
       return
     }
@@ -694,7 +739,9 @@ export default function DesignModal({
                             setPremiumFinish(null)
                           }}
                           className={`relative aspect-square overflow-hidden rounded-md border-2 transition ${
-                            finish?.id === acabado.id ? 'border-[var(--accent)]' : 'border-[var(--border)]'
+                            finish?.id === acabado.id
+                              ? 'border-[var(--accent)]'
+                              : 'border-[var(--border)]'
                           }`}
                           style={{
                             backgroundImage: acabado.imageUrl ? `url(${acabado.imageUrl})` : undefined,
@@ -702,7 +749,11 @@ export default function DesignModal({
                             backgroundSize: 'cover',
                             backgroundPosition: 'center',
                           }}
-                        />
+                        >
+                          <span className="absolute inset-x-0 bottom-0 bg-black/60 px-1 py-1 text-center text-[10px] font-medium text-white">
+                            {acabado.nombre}
+                          </span>
+                        </button>
                       ))}
                     </div>
                     <p className="mt-1.5 text-xs text-[var(--text-soft)]">
@@ -719,27 +770,34 @@ export default function DesignModal({
                       <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
                         {acabadosPremium.map((acabado) => (
                           <button
-                            key={acabado.id}
-                            type="button"
-                            title={`${acabado.nombre} (+${acabado.precioExtra.toFixed(2)} €)`}
-                            onClick={() => {
-                              setPremiumFinish(acabado)
-                              setFinish(null)
-                            }}
-                            className={`relative aspect-square overflow-hidden rounded-md border-2 transition ${
-                              premiumFinish?.id === acabado.id ? 'border-[var(--accent)]' : 'border-[var(--border)]'
-                            }`}
-                            style={{
-                              backgroundImage: acabado.imageUrl ? `url(${acabado.imageUrl})` : undefined,
-                              backgroundColor: acabado.imageUrl ? undefined : SKI_BASE_COLOR,
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center',
-                            }}
-                          >
-                            <span className="absolute inset-x-0 bottom-0 bg-black/60 px-1 py-0.5 text-center text-[10px] font-medium text-white">
+                          key={acabado.id}
+                          type="button"
+                          title={`${acabado.nombre} (+${acabado.precioExtra.toFixed(2)} €)`}
+                          onClick={() => {
+                            setPremiumFinish(acabado)
+                            setFinish(null)
+                          }}
+                          className={`relative aspect-square overflow-hidden rounded-md border-2 transition ${
+                            premiumFinish?.id === acabado.id
+                              ? 'border-[var(--accent)]'
+                              : 'border-[var(--border)]'
+                          }`}
+                          style={{
+                            backgroundImage: acabado.imageUrl ? `url(${acabado.imageUrl})` : undefined,
+                            backgroundColor: acabado.imageUrl ? undefined : SKI_BASE_COLOR,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                          }}
+                        >
+                          <div className="absolute inset-x-0 bottom-0 bg-black/60 px-1 py-1 text-center text-white">
+                            <div className="text-[10px] font-medium leading-tight">
+                              {acabado.nombre}
+                            </div>
+                            <div className="text-[9px] text-[var(--accent)]">
                               +{acabado.precioExtra.toFixed(0)}€
-                            </span>
-                          </button>
+                            </div>
+                          </div>
+                        </button>
                         ))}
                       </div>
                       <p className="mt-1.5 text-xs text-[var(--text-soft)]">
@@ -886,17 +944,6 @@ export default function DesignModal({
                               onChange={(e) => updateSelectedItem({ text: e.target.value })}
                               maxLength={30}
                               className="w-full rounded-lg border border-[var(--border-hover)] bg-transparent px-3 py-2 text-sm text-[var(--foreground)] outline-none focus:border-[var(--accent)]"
-                            />
-                          </div>
-                          <div>
-                            <label className="mb-1 block text-xs text-[var(--text-muted)]">
-                              Color
-                            </label>
-                            <input
-                              type="color"
-                              value={selectedItem.color ?? DEFAULT_TEXT_COLOR}
-                              onChange={(e) => updateSelectedItem({ color: e.target.value })}
-                              className="h-9 w-16 cursor-pointer rounded border border-[var(--border-hover)] bg-transparent"
                             />
                           </div>
                         </>

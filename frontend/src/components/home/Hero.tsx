@@ -1,5 +1,6 @@
+'use client'
+
 import Link from 'next/link'
-import Image from 'next/image'
 import SectionText from '../ui/SectionTest'
 
 type HeroButton = {
@@ -26,22 +27,16 @@ export default function Hero({ eyebrow, title, description, imageUrl, buttons }:
         {/* 1. Imagen principal del Hero + Su propia transición inferior + Opacidad */}
         {imageUrl ? (
           <div
-            className="absolute inset-0 opacity-55"
-            style={{
+            className="h-full w-full bg-cover bg-center"
+            style={{ 
+              backgroundImage: `url(${imageUrl})`,
+              opacity: 0.55, // <-- Aquí le damos el toque justo de opacidad para que trasluzca la madera
+              
+              // Creamos un fundido suave: arriba 100% visible, abajo se desvanece por completo
               maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)'
             }}
-          >
-            <Image
-              src={imageUrl}
-              alt=""
-              fill
-              priority
-              sizes="100vw"
-              quality={75}
-              className="object-cover object-center"
-            />
-          </div>
+          />
         ) : (
           <div className="h-full w-full bg-[var(--surface-soft)]" />
         )}

@@ -657,3 +657,7 @@ alter table public.acabado
 -- Quitamos el límite de 3 medidas: ahora se pueden añadir más desde el admin
 alter table public.product
   drop constraint if exists product_medidas_max3;
+
+-- 012_otros_productos.sql
+alter table public.product
+  add column if not exists otro_producto boolean not null default false;

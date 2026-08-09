@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
+import OrderForm from './OrderForm'
+import OrderSentConfirmation from './OrderSentConfirmation'
 import {
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
@@ -1039,190 +1041,49 @@ export default function DesignModal({
 
             {step === 'form' && (
               <div className="fixed inset-0 z-10 flex items-center justify-center bg-[var(--overlay-heavy)] p-3 sm:p-4">
-                <form
+                <OrderForm
+                  form={form}
+                  onFormChange={handleFormChange}
+                  honeypot={honeypot}
+                  onHoneypotChange={(e) => setHoneypot(e.target.value)}
                   onSubmit={handleSubmitOrder}
-                  className="flex max-h-[90vh] w-full max-w-md flex-col overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--surface-elevated)] p-5 sm:p-6"
+                  sending={sending}
+                  sendError={sendError}
+                  totalPrice={totalPrice}
+                  priceBreakdown={
+                    finishExtra > 0 || zoneExtra > 0
+                      ? `Base ${product.precio.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}${finishExtra > 0 ? ` + acabado premium ${finishExtra.toFixed(2)} €` : ''}${zoneExtra > 0 ? ` + personalización ${zoneExtra.toFixed(2)} €` : ''}`
+                      : undefined
+                  }
+                  onBack={() => setStep('editor')}
+                  submitDisabled={useOwnDesign && !ownDesignFile}
                 >
-                  <h3
-                    className="text-lg font-light text-[var(--foreground)]"
-                    style={{ fontFamily: 'var(--font-display)' }}
-                  >
-                    Completa tus datos
-                  </h3>
-                  <p className="mb-5 mt-1 text-xs text-[var(--text-muted)]">
-                    Enviaremos tu diseño junto a tus datos. Nos pondremos en contacto para definir los detalles finales.
-                  </p>
+                  <div className="rounded-lg border border-dashed border-[var(--border-hover)] p-4">
+                    <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
+                      <input type="checkbox" checked={useOwnDesign} onChange={(e) => setUseOwnDesign(e.target.checked)} />
+                      Ya tengo mi diseño, prefiero subirlo directamente
+                    </label>
 
-                  <div className="space-y-5">
-                    <div>
-                      <label className="mb-1.5 block text-sm text-[var(--accent)]">Nombre *</label>
-                      <input
-                        name="nombre"
-                        type="text"
-                        required
-                        value={form.nombre}
-                        onChange={handleFormChange}
-                        className="w-full rounded-lg border border-[var(--border-hover)] bg-transparent px-4 py-2.5 text-sm text-[var(--foreground)] outline-none focus:border-[var(--accent)]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-1.5 block text-sm text-[var(--accent)]">Email *</label>
-                      <input
-                        name="email"
-                        type="email"
-                        required
-                        value={form.email}
-                        onChange={handleFormChange}
-                        className="w-full rounded-lg border border-[var(--border-hover)] bg-transparent px-4 py-2.5 text-sm text-[var(--foreground)] outline-none focus:border-[var(--accent)]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-1.5 block text-sm text-[var(--accent)]">Teléfono*</label>
-                      <input
-                        name="telefono"
-                        type="tel"
-                        required
-                        value={form.telefono}
-                        onChange={handleFormChange}
-                        placeholder="+34 600 000 000"
-                        className="w-full rounded-lg border border-[var(--border-hover)] bg-transparent px-4 py-2.5 text-sm text-[var(--foreground)] outline-none focus:border-[var(--accent)]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-1.5 block text-sm text-[var(--accent)]">Notas (opcional)</label>
-                      <textarea
-                        name="mensaje"
-                        value={form.mensaje}
-                        onChange={handleFormChange}
-                        rows={3}
-                        placeholder="Cuéntanos algo más sobre tu diseño..."
-                        className="w-full resize-none rounded-lg border border-[var(--border-hover)] bg-transparent px-4 py-2.5 text-sm text-[var(--foreground)] outline-none focus:border-[var(--accent)]"
-                      />
-                    </div>
-
-                    <div className="rounded-lg border border-dashed border-[var(--border-hover)] p-4">
-                      <label className="flex items-center gap-2 text-sm text-[var(--foreground)]">
-                        <input
-                          type="checkbox"
-                          checked={useOwnDesign}
-                          onChange={(e) => setUseOwnDesign(e.target.checked)}
-                        />
-                        Ya tengo mi diseño, prefiero subirlo directamente
-                      </label>
-
-                      {useOwnDesign && (
-                        <div className="mt-3">
-                          <p className="mb-2 text-xs text-amber-400">
-                            El diseño que has creado en el editor no se enviará: solo se usará
-                            el archivo que subas aquí.
-                          </p>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleOwnDesignFile}
-                            className="block w-full text-xs text-[var(--text-muted)] file:mr-3 file:rounded-lg file:border file:border-[var(--border)] file:bg-transparent file:px-3 file:py-2 file:text-xs file:text-[var(--foreground)]"
-                          />
-                          {ownDesignFile && (
-                            <p className="mt-1 text-xs text-[var(--text-soft)]">
-                              {ownDesignFile.name}
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      <p className="mt-2 text-xs text-[var(--text-soft)]">
-                        ¿Buscas inspiración?{' '}
-                        <Link href="/galeria" target="_blank" className="underline underline-offset-2 hover:text-[var(--foreground)]">
-                          Visita nuestra galería
-                        </Link>
-                      </p>
-                    </div>
-
-                    <input
-                      type="text"
-                      name="website"
-                      value={honeypot}
-                      onChange={(e) => setHoneypot(e.target.value)}
-                      tabIndex={-1}
-                      autoComplete="off"
-                      style={{
-                        position: 'absolute',
-                        left: '-9999px',
-                        width: '1px',
-                        height: '1px',
-                        opacity: 0,
-                      }}
-                      aria-hidden="true"
-                    />
-
-                    {sendError && (
-                      <p className="text-sm text-red-400">
-                        Ha ocurrido un error enviando tu pedido. Inténtalo de nuevo.
-                      </p>
+                    {useOwnDesign && (
+                      <div className="mt-3">
+                        <p className="mb-2 text-xs text-amber-400">
+                          El diseño que has creado en el editor no se enviará: solo se usará el archivo que subas aquí.
+                        </p>
+                        <input type="file" accept="image/*" onChange={handleOwnDesignFile} className="block w-full text-xs text-[var(--text-muted)] file:mr-3 file:rounded-lg file:border file:border-[var(--border)] file:bg-transparent file:px-3 file:py-2 file:text-xs file:text-[var(--foreground)]" />
+                        {ownDesignFile && <p className="mt-1 text-xs text-[var(--text-soft)]">{ownDesignFile.name}</p>}
+                      </div>
                     )}
-                  </div>
 
-                  <div className="mt-6 border-t border-[var(--border)] pt-5">
-                    <div className="mb-3 flex items-center justify-between">
-                      <span className="text-sm text-[var(--text-muted)]">Precio total</span>
-                      <span className="text-lg font-medium text-[var(--foreground)]">
-                        {totalPrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
-                      </span>
-                    </div>
-
-                    <p className="mb-4 text-xs text-[var(--text-soft)]">
-                      No se paga en este momento. Revisaremos tu pedido y nos pondremos en contacto
-                      contigo para definir los últimos detalles y comenzar la elaboración; el pago
-                      se realiza en ese momento.
+                    <p className="mt-2 text-xs text-[var(--text-soft)]">
+                      ¿Buscas inspiración?{' '}
+                      <Link href="/galeria" target="_blank" className="underline underline-offset-2 hover:text-[var(--foreground)]">Visita nuestra galería</Link>
                     </p>
-
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setStep('editor')}
-                        className="flex-1 rounded-lg border border-[var(--border-hover)] px-4 py-3 text-sm text-[var(--text-muted)] transition hover:text-[var(--foreground)]"
-                      >
-                        Volver
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={sending || (useOwnDesign && !ownDesignFile)}
-                        className="flex-1 rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-medium text-[var(--surface)] transition hover:bg-[var(--accent-hover)] disabled:opacity-50"
-                      >
-                        {sending ? 'Enviando...' : 'Enviar pedido'}
-                      </button>
-                    </div>
                   </div>
-                </form>
+                </OrderForm>
               </div>
             )}
 
-            {step === 'sent' && (
-              <div className="flex flex-col items-center gap-4 py-12 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full border border-emerald-400/40 text-2xl text-emerald-400">
-                  ✓
-                </div>
-                <h3
-                  className="text-xl font-light text-[var(--foreground)]"
-                  style={{ fontFamily: 'var(--font-display)' }}
-                >
-                  Tu petición ha sido enviada
-                </h3>
-                <p className="max-w-sm text-sm text-[var(--text-muted)]">
-                  Nos pondremos en contacto contigo pronto para definir juntos los últimos detalles de tu diseño.
-                </p>
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="mt-2 rounded-lg border border-[var(--border-hover)] px-6 py-2.5 text-sm text-[var(--foreground)] transition hover:border-[var(--accent)]"
-                >
-                  Cerrar
-                </button>
-              </div>
-            )}
+            {step === 'sent' && <OrderSentConfirmation onClose={closeModal} />}
           </div>
         </div>
       )}

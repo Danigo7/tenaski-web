@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import ProductGallery from '@/components/catalog/ProductGallery'
 import DesignModal from '@/components/catalog/DesignModal'
+import SimpleOrderModal from '@/components/catalog/SimpleOrderModal'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,6 +62,7 @@ export default async function ProductoPage({ params }: Props) {
       medidas,
       precio_extra_espatula,
       precio_extra_cola,
+      otro_producto,
       product_image (
         imagen_principal,
         orden,
@@ -173,19 +175,18 @@ export default async function ProductoPage({ params }: Props) {
               <span>→</span>
             </Link>
 
-            <DesignModal
-              product={{
-                id: data.id,
-                nombre: data.nombre,
-                slug: data.slug,
-                precio: data.precio,
-              }}
-              acabados={acabados}
-              acabadosPremium={acabadosPremium}
-              medidas={data.medidas ?? []}
-              precioExtraEspatula={data.precio_extra_espatula ?? 0}
-              precioExtraCola={data.precio_extra_cola ?? 0}
-            />
+            {data.otro_producto ? (
+              <SimpleOrderModal product={{ id: data.id, nombre: data.nombre, slug: data.slug, precio: data.precio }} />
+            ) : (
+              <DesignModal
+                product={{ id: data.id, nombre: data.nombre, slug: data.slug, precio: data.precio }}
+                acabados={acabados}
+                acabadosPremium={acabadosPremium}
+                medidas={data.medidas ?? []}
+                precioExtraEspatula={data.precio_extra_espatula ?? 0}
+                precioExtraCola={data.precio_extra_cola ?? 0}
+              />
+            )}
 
             <div className="mt-16 pt-8 border-t border-[var(--border)] flex items-center justify-between text-xs text-[var(--text-disabled)]">
               <span className="tracking-widest uppercase">Hecho en el Pirineo</span>

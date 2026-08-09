@@ -15,6 +15,7 @@ type Product = {
   descripcion_larga: string | null
   publicado: boolean
   destacado: boolean
+  otro_producto: boolean
   medidas: string[]
   precio_extra_espatula: number
   precio_extra_cola: number
@@ -554,6 +555,10 @@ export default function ProductTable({ products }: ProductTableProps) {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" name="destacado" defaultChecked={editProduct.destacado} value="on" className="accent-white" />
                     Destacado
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="otro_producto" defaultChecked={editProduct.otro_producto} value="on" className="accent-white" />
+                    Otros productos
                   </label>
                 </div>
 

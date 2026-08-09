@@ -17,6 +17,7 @@ export async function createProductWithImages(formData: FormData) {
   const descripcion_larga = formData.get('descripcion_larga') as string
   const publicado = formData.get('publicado') === 'on'
   const destacado = formData.get('destacado') === 'on'
+  const otro_producto = formData.get('otro_producto') === 'on'
 
   const rawIds = formData.get('image_ids') as string
   const imageIds: string[] = rawIds ? JSON.parse(rawIds) : []
@@ -38,6 +39,7 @@ export async function createProductWithImages(formData: FormData) {
       descripcion_larga,
       publicado,
       destacado,
+      otro_producto,
       created_by: user.id,
       slug,
       medidas,
@@ -92,6 +94,7 @@ export async function updateProduct(productId: string, formData: FormData) {
   const descripcion_larga = formData.get('descripcion_larga') as string
   const publicado = formData.get('publicado') === 'on'
   const destacado = formData.get('destacado') === 'on'
+  const otro_producto = formData.get('otro_producto') === 'on'
 
   const rawMedidas = formData.get('medidas') as string | null
   const medidas: string[] = rawMedidas ? JSON.parse(rawMedidas) : []
@@ -107,6 +110,7 @@ export async function updateProduct(productId: string, formData: FormData) {
       descripcion_larga,
       publicado,
       destacado,
+      otro_producto,
       medidas,
       precio_extra_espatula,
       precio_extra_cola,

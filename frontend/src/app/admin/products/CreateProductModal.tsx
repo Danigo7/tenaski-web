@@ -36,6 +36,7 @@ export default function CreateProductModal({ open, onClose }: Props) {
     descripcion_larga: '',
     publicado: false,
     destacado: false,
+    otro_producto: false,
   })
 
   // ── Medidas y precios extra de zona ───────────────────────
@@ -81,6 +82,7 @@ export default function CreateProductModal({ open, onClose }: Props) {
       descripcion_larga: '',
       publicado: false,
       destacado: false,
+      otro_producto: false,
     })
     setMedidas(['', '', ''])
     setPrecioExtraEspatula('')
@@ -226,6 +228,7 @@ export default function CreateProductModal({ open, onClose }: Props) {
       formData.set('descripcion_larga', formValues.descripcion_larga)
       if (formValues.publicado) formData.set('publicado', 'on')
       if (formValues.destacado) formData.set('destacado', 'on')
+      if (formValues.otro_producto) formData.set('otro_producto', 'on')
       formData.set('image_ids', JSON.stringify(allImageIds))
       formData.set('medidas', JSON.stringify(medidasFiltradas))
       formData.set('precio_extra_espatula', precioExtraEspatula || '0')
@@ -371,6 +374,10 @@ export default function CreateProductModal({ open, onClose }: Props) {
                     className="accent-white"
                   />
                   Destacado
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={formValues.otro_producto} onChange={(e) => setFormValues((v) => ({ ...v, otro_producto: e.target.checked }))} className="accent-white" />
+                  Otros productos
                 </label>
               </div>
 

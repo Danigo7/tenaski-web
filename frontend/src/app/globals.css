@@ -1,99 +1,29 @@
 @import "tailwindcss";
 
 :root {
-
-  /* ==========================================================
-     TIPOGRAFÍA
-  ========================================================== */
-
+  --background: #0f0f0f;
+  --foreground: #e8e4dc;
+  --surface: #0f0f0f;
+  --surface-soft: #1a1714;
+  --accent: #c4a882;
+  --accent-strong: #e8e4dc;
+  --text-muted: rgba(232, 228, 220, 0.6);
   --font-display: "Cormorant Garamond", "Times New Roman", serif;
-
-  /* ==========================================================
-     COLORES BASE
-  ========================================================== */
-
-  --background: #646464;
-  --surface: #1b130c;
-  --surface-soft: #271c11;
-  --surface-elevated: #302416;
-
-  /* ==========================================================
-     TEXTO
-  ========================================================== */
-
-  --foreground: #ede2d0;
-  --text-muted: rgba(237, 226, 208, 0.60);
-  --text-soft: rgba(237, 226, 208, 0.35);
-  --text-disabled: rgba(237, 226, 208, 0.20);
-
-  /* ==========================================================
-     ACCENT
-  ========================================================== */
-
-  --accent: #b5824f;
-  --accent-hover: #c99a68;
-  --accent-strong: #ede2d0;
-
-  /* ==========================================================
-     BORDES
-  ========================================================== */
-
-  --border: rgba(237, 226, 208, 0.08);
-  --border-hover: rgba(237, 226, 208, 0.25);
-
-  /* ==========================================================
-     OVERLAYS
-  ========================================================== */
-
-  --overlay-light: rgba(0, 0, 0, 0.20);
-  --overlay-medium: rgba(0, 0, 0, 0.35);
-  --overlay-heavy: rgba(0, 0, 0, 0.65);
-
-  /* ==========================================================
-     NAVBAR
-  ========================================================== */
-
-  --navbar-bg: rgba(27, 19, 12, 0.95);
-  --navbar-text: var(--foreground);
-  --navbar-text-muted: rgba(237, 226, 208, 0.80);
-  --navbar-border: var(--border);
-  --navbar-accent: var(--accent);
-
-  /* ==========================================================
-     GRADIENTES
-  ========================================================== */
-
-  --gradient-dark: linear-gradient(to top, rgba(27, 19, 12, 0.4), transparent);
-
-  /* ==========================================================
-     TEXTURA DE FONDO (opcional, vacía por defecto para otros temas)
-  ========================================================== */
-
-  --background-texture: url('/img/wood-texture.png');
-  --background-texture-opacity: 0.4;
-
 }
-
 
 html {
   scroll-behavior: smooth;
-  background: var(--background);
-  color-scheme: dark;
 }
 
 body {
-  background-color: var(--background);
-  background-image: var(--background-texture);
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  background-blend-mode: multiply;
+  background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
 
 @layer components {
   .home-section {
+    background-color: var(--surface);
     color: var(--foreground);
   }
 
@@ -141,18 +71,18 @@ body {
 
   .home-section__button-secondary {
     display: inline-block;
-    border: 1px solid var(--border-hover);
+    border: 1px solid rgba(232, 228, 220, 0.2);
     padding: 1rem 2.5rem;
     font-size: 0.875rem;
     font-weight: 500;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: rgba(232, 228, 220, 0.7);
     transition: border-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
   }
 
   .home-section__button-secondary:hover {
-    border-color: var(--border-hover);
+    border-color: rgba(232, 228, 220, 0.5);
     color: var(--foreground);
     transform: translateY(-2px);
   }

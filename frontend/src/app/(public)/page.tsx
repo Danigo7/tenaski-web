@@ -23,56 +23,85 @@ function getImage(block: any): string | null {
 export default async function Home() {
   const supabase = await createClient()
 
-  // ─────────────────────────────────────────────
-  // HERO HOME
-  // ─────────────────────────────────────────────
-  const { data: hero } = await supabase
-    .from('content_block')
-    .select('data, image:imagen_id (ruta_storage)')
-    .eq('seccion', 'hero_home')
-    .single()
-
-  // ─────────────────────────────────────────────
-  // MANIFESTO HOME
-  // ─────────────────────────────────────────────
-  const { data: manifesto } = await supabase
-    .from('content_block')
-    .select('data, image:imagen_id (ruta_storage)')
-    .eq('seccion', 'home_manifesto')
-    .single()
-
-  // ─────────────────────────────────────────────
-  // PROCESS HOME + STEPS
-  // ─────────────────────────────────────────────
-  const { data: processBlocks } = await supabase
-    .from('content_block')
-    .select('seccion, data, image:imagen_id (ruta_storage)')
-    .in('seccion', [
-      'home_process',
-      'home_process_step_1',
-      'home_process_step_2',
-      'home_process_step_3',
-      'home_process_step_4',
-    ])
+  const [
+    { data: hero },
+    { data: manifesto },
+    { data: processBlocks },
+    { data: acabadosBlock },
+    { data: acabadosRows },
+    { data: acabadosPremiumBlock },
+    { data: acabadosPremiumRows },
+    { data: ctaHome },
+    { data: featured },
+  ] = await Promise.all([
+    supabase
+      .from('content_block')
+      .select('data, image:imagen_id (ruta_storage)')
+      .eq('seccion', 'hero_home')
+      .single(),
+    supabase
+      .from('content_block')
+      .select('data, image:imagen_id (ruta_storage)')
+      .eq('seccion', 'home_manifesto')
+      .single(),
+    supabase
+      .from('content_block')
+      .select('seccion, data, image:imagen_id (ruta_storage)')
+      .in('seccion', [
+        'home_process',
+        'home_process_step_1',
+        'home_process_step_2',
+        'home_process_step_3',
+        'home_process_step_4',
+      ]),
+    supabase
+      .from('content_block')
+      .select('data')
+      .eq('seccion', 'acabados_home')
+      .single(),
+    supabase
+      .from('acabado')
+      .select('id, nombre, descripcion, image:imagen_id (ruta_storage)')
+      .order('orden', { ascending: true }),
+    supabase
+      .from('content_block')
+      .select('data')
+      .eq('seccion', 'acabados_premium_home')
+      .single(),
+    supabase
+      .from('acabado')
+      .select('id, nombre, descripcion, precio_extra, image:imagen_id (ruta_storage)')
+      .eq('es_premium', true)
+      .order('orden', { ascending: true }),
+    supabase
+      .from('content_block')
+      .select('data')
+      .eq('seccion', 'cta_home')
+      .single(),
+    supabase
+      .from('product')
+      .select(`
+        nombre,
+        slug,
+        descripcion_corta,
+        product_image (
+          imagen_principal,
+          orden,
+          image:imagen_id (
+            ruta_storage
+          )
+        )
+      `)
+      .eq('publicado', true)
+      .eq('destacado', true)
+      .limit(1)
+      .single(),
+  ])
 
   const process = processBlocks?.find((p) => p.seccion === 'home_process')
 
   const step = (n: number) =>
     processBlocks?.find((p) => p.seccion === `home_process_step_${n}`)
-
-  // ─────────────────────────────────────────────
-  // ACABADOS
-  // ─────────────────────────────────────────────
-  const { data: acabadosBlock } = await supabase
-    .from('content_block')
-    .select('data')
-    .eq('seccion', 'acabados_home')
-    .single()
-
-  const { data: acabadosRows } = await supabase
-    .from('acabado')
-    .select('id, nombre, descripcion, image:imagen_id (ruta_storage)')
-    .order('orden', { ascending: true })
 
   const acabados = (acabadosRows ?? []).map((a) => ({
     id: a.id,
@@ -80,21 +109,6 @@ export default async function Home() {
     descripcion: a.descripcion,
     imageUrl: getImage(a) ?? null,
   }))
-
-  // ─────────────────────────────────────────────
-  // ACABADOS PREMIUM
-  // ─────────────────────────────────────────────
-  const { data: acabadosPremiumBlock } = await supabase
-    .from('content_block')
-    .select('data')
-    .eq('seccion', 'acabados_premium_home')
-    .single()
-
-  const { data: acabadosPremiumRows } = await supabase
-    .from('acabado')
-    .select('id, nombre, descripcion, precio_extra, image:imagen_id (ruta_storage)')
-    .eq('es_premium', true)
-    .order('orden', { ascending: true })
 
   const acabadosPremium = (acabadosPremiumRows ?? []).map((a) => ({
     id: a.id,
@@ -104,37 +118,6 @@ export default async function Home() {
     imageUrl: getImage(a) ?? null,
   }))
   
-
-  // ─────────────────────────────────────────────
-  // CTA HOME
-  // ─────────────────────────────────────────────
-  const { data: ctaHome } = await supabase
-    .from('content_block')
-    .select('data')
-    .eq('seccion', 'cta_home')
-    .single()
-
-  // ─────────────────────────────────────────────
-  // PRODUCTO DESTACADO (lo dejas igual)
-  // ─────────────────────────────────────────────
-  const { data: featured } = await supabase
-    .from('product')
-    .select(`
-      nombre,
-      slug,
-      descripcion_corta,
-      product_image (
-        imagen_principal,
-        orden,
-        image:imagen_id (
-          ruta_storage
-        )
-      )
-    `)
-    .eq('publicado', true)
-    .eq('destacado', true)
-    .limit(1)
-    .single()
 
   const featuredImage = featured
     ? (() => {
